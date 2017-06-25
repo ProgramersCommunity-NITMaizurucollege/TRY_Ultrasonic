@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBeginningOfSpeech() {
-            speechRecogStatus.setText("認識開始");
+            speechRecogStatus.setText("認識中");
             bufferCounter = 0;
         }
 
@@ -51,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
         public void onError(int error) {
             String errorString = getErrorString(error);
             speechRecogStatus.setText("エラー = " + errorString);
+            try{
+                Thread.sleep(1000);
+            }catch (InterruptedException e){}
+            startSpeechRecog();
         }
 
         private String getErrorString(int error) {
@@ -78,7 +82,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onResults(Bundle results) {
             speechRecogStatus.setText("結果");
-            processResults(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION));
+            String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
+            speechRecogResult.setText("" + finalResult);
+            TextView recently1 = (TextView) findViewById(R.id.recently_speech_recog_result1);
+            TextView recently2 = (TextView) findViewById(R.id.recently_speech_recog_result2);
+            TextView recently3 = (TextView) findViewById(R.id.recently_speech_recog_result3);
+            recently3.setText(recently2.getText());
+            recently2.setText(recently1.getText());
+            recently1.setText(StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ','));
+            try{
+                Thread.sleep(1000);
+            }catch (InterruptedException e){}
+            startSpeechRecog();
         }
 
         @Override
@@ -102,12 +117,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView speechRecogStatus;
     private TextView bufferStatus;
 
-    private View.OnClickListener startSpeechRecogClickListener = new View.OnClickListener() {
+    /*private View.OnClickListener startSpeechRecogClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             startSpeechRecog();
         }
-    };
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,9 +135,10 @@ public class MainActivity extends AppCompatActivity {
         speechRecogResult = (TextView) findViewById(R.id.speech_recog_result);
         speechRecogStatus = (TextView) findViewById(R.id.speech_recog_status_text);
         bufferStatus = (TextView) findViewById(R.id.buffer_status);
-        findViewById(R.id.button).setOnClickListener(startSpeechRecogClickListener);
+        //findViewById(R.id.button).setOnClickListener(startSpeechRecogClickListener);
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizer.setRecognitionListener(myListener);
+        startSpeechRecog();
     }
 
     @Override
@@ -146,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                                     .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                                     .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
                                     .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"ja-JP");
-//        startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
+        //startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
         speechRecognizer.startListening(recogIntent);
     }
 }
