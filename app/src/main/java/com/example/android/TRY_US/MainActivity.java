@@ -22,12 +22,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReadyForSpeech(Bundle params) {
-
+            speechRecogStatus.setText("録音開始");
         }
 
         @Override
         public void onBeginningOfSpeech() {
-            speechRecogStatus.setText("onBeginningOfSpeech");
+            speechRecogStatus.setText("認識開始");
             bufferCounter = 0;
         }
 
@@ -43,47 +43,47 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onEndOfSpeech() {
-            speechRecogStatus.setText("onEndOfSpeech");
+            speechRecogStatus.setText("認識終了");
             bufferStatus.setText("counter = " + bufferCounter);
         }
 
         @Override
         public void onError(int error) {
             String errorString = getErrorString(error);
-            speechRecogStatus.setText("onError = " + errorString);
+            speechRecogStatus.setText("エラー = " + errorString);
         }
 
         private String getErrorString(int error) {
             switch (error) {
                 case SpeechRecognizer.ERROR_AUDIO:
-                    return "audio error";
+                    return "オーディオエラー";
                 case SpeechRecognizer.ERROR_CLIENT:
-                    return "client error";
+                    return "クライアントエラー";
                 case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                    return "need audio permission - mother, may I?";
+                    return "権限が必要";
                 case SpeechRecognizer.ERROR_NETWORK:
                 case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
                 case SpeechRecognizer.ERROR_SERVER:
-                    return "server/network error";
+                    return "サーバー/ネットワークエラー";
                 case SpeechRecognizer.ERROR_NO_MATCH:
-                    return "no match";
+                    return "マッチなし";
                 case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
                     return "apparently, recognizer busy";
                 case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                    return "speech timeout? what?";
+                    return "タイムアウト";
             }
             return "";
         }
 
         @Override
         public void onResults(Bundle results) {
-            speechRecogStatus.setText("onResults");
+            speechRecogStatus.setText("結果");
             processResults(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION));
         }
 
         @Override
         public void onPartialResults(Bundle partialResults) {
-            speechRecogStatus.setText("onPartialResults");
+            speechRecogStatus.setText("リアルタイム結果");
             processResults(partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION));
         }
 

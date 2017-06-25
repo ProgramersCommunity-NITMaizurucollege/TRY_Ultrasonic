@@ -11,23 +11,23 @@
         android:id="@+id/speech_recog_status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Status here"
+        android:text="ステータス"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.503"
-        app:layout_constraintVertical_bias="0.53"/>
+        app:layout_constraintVertical_bias="0.53" />
 
     <TextView
         android:id="@+id/speech_recog_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Results here"
+        android:layout_marginTop="8dp"
+        android:text="結果"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/speech_recog_status_text"/>
+        app:layout_constraintTop_toBottomOf="@+id/speech_recog_status_text" />
 
     <Button
         android:id="@+id/button"
