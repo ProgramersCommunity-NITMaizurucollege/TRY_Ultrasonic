@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     public static final int SPEECH_RECOG_REQUEST = 42;
-    private SpeechRecognizer speechRecognizer;
+    private android.speech.SpeechRecognizer speechRecognizer;
     private RecognitionListener myListener = new RecognitionListener() {
         public int bufferCounter = 0;
 
@@ -89,17 +89,21 @@ public class MainActivity extends AppCompatActivity {
             TextView recently3 = (TextView) findViewById(R.id.recently_speech_recog_result3);
             recently3.setText(recently2.getText());
             recently2.setText(recently1.getText());
-            recently1.setText(StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ','));
+            recently1.setText(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
             try{
                 Thread.sleep(1000);
             }catch (InterruptedException e){}
             startSpeechRecog();
         }
 
-        @Override
+        /*@Override
         public void onPartialResults(Bundle partialResults) {
             speechRecogStatus.setText("リアルタイム結果");
             processResults(partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION));
+        }*/
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            processResults(partialResults.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION));
         }
 
         @Override
@@ -110,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void processResults(ArrayList<String> speechRecogResults) {
         String finalResult = StringUtils.join(speechRecogResults, ',');
-        speechRecogResult.setText("" + finalResult);
+        speechRecogResult.setText(speechRecogResults.get(0));
     }
 
     private TextView speechRecogResult;
@@ -157,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         speechRecogResult.setText(null);
         bufferStatus.setText(null);
         Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                                    .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                                    //.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                                     .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
                                     .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                                     .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
