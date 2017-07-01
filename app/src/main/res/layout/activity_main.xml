@@ -27,17 +27,6 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/speech_recog_status_text" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start speech recognition"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginStart="8dp" />
-
     <TextView
         android:id="@+id/buffer_status"
         android:layout_width="wrap_content"
@@ -77,5 +66,11 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recently_speech_recog_result2" />
+
+    <CheckBox
+        android:id="@+id/internal_speaker_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="内蔵スピーカーを使用" />
 
 </android.support.constraint.ConstraintLayout>
