@@ -32,20 +32,25 @@ import static android.app.Activity.RESULT_OK;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener{
+
     public static final int SPEECH_RECOG_REQUEST = 42;
-    Handler handler= new Handler();
+  //  Handler handler= new Handler();
     TextView textView;
     EditText editText;
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
     int FFT_SIZE = 4096;
     private TextToSpeech tts;
+    double syuhasu;
+    double onryou;
+
 
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
     double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
-
+    int max_i;
+    int max_db;
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
@@ -53,6 +58,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final TextView textView = (TextView)findViewById(R.id.FFTtext);
+
+
+        textView.setText("fft" + "周波数："+ String.valueOf(syuhasu) + " [Hz] 音量：" + String.valueOf(onryou));
         speechRecogStuff();
         tts = new TextToSpeech(this, this);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
@@ -80,79 +89,25 @@ public class MainActivity extends AppCompatActivity
                 }else {
                     //チェックされていない場合
                 }
+
             }
         });
+        // AudioRecordの作成
+        audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
+        audioRec.startRecording();
+        bIsRecording = true;
+
+
+
 
         editText = (EditText) findViewById(R.id.edit_text);
 
+    }
 
 
 
-            // AudioRecordの作成
-            audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                    SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
-            audioRec.startRecording();
-            bIsRecording = true;
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    // マルチスレッドにしたい処理 ここから
-
-                    // final String result = getMessage(); // 何かの処理
-                    handler.post(new Runnable() {
-                        @Override
-
-                        public void run() {
-                            // 画面に描画する処理
-                            byte buf[] = new byte[bufSize * 2];
-                            while (bIsRecording) {
-                                audioRec.read(buf, 0, buf.length);
-
-                                //エンディアン変換
-                                ByteBuffer bf = ByteBuffer.wrap(buf);
-                                bf.order(ByteOrder.LITTLE_ENDIAN);
-                                short[] s = new short[(int) bufSize];
-                                for (int i = bf.position(); i < bf.capacity() / 2; i++) {
-                                    s[i] = bf.getShort();
-                                }
-                                //FFTクラスの作成と値の引き渡し
-                                FFT fft = new FFT(FFT_SIZE);
-                                double[] FFTdata = new double[FFT_SIZE];
-                                for (int i = 0; i < FFT_SIZE; i++) {
-                                    FFTdata[i] = (double) s[i];
-                                }
-                                fft.rdft(1, FFTdata);
-
-                                // デシベルの計算
-                                double[] dbfs = new double[FFT_SIZE / 2];
-                                double max_db = -120d;
-                                int max_i = 0;
-                                for (int i = 0; i < FFT_SIZE; i += 2) {
-                                    dbfs[i / 2] = (int) (20 * Math.log10(Math.sqrt(Math
---                                            .pow(FFTdata[i], 2)
-                                            + Math.pow(FFTdata[i + 1], 2)) / dB_baseline));
-                                    if (max_db < dbfs[i / 2]) {
-                                        max_db = dbfs[i / 2];
-                                        max_i = i / 2;
-                                    }
-                                }
-
-                                //音量が最大の周波数と，その音量を表示
-                                Log.d("fft","周波数："+ resol * max_i+" [Hz] 音量：" +  max_db+" [dB]");
-                            }
-                            // 録音停止
-                            audioRec.stop();
-                            audioRec.release();
-                        }
-
-                    });
-
-                    // マルチスレッドにしたい処理 ここまで
-                }
-            }).start();
-        }
 /*
     public void onClickButton(View v) {
         new Thread(new Runnable() {
@@ -391,7 +346,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        shutDown();
+       // shutDown();
     }
         //unregisterReceiver(broadcastReceiver);
 
@@ -429,5 +384,81 @@ public class MainActivity extends AppCompatActivity
 
         speechRecognizer.startListening(recogIntent);
     }
+
+
+    Handler handler = new Handler();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // マルチスレッドにしたい処理 ここから
+                handler.post(new Runnable() {
+
+                @Override
+                        public void run(){
+                // final String result = getMessage(); // 何かの処理
+
+
+                        //       @Override
+
+                        //   public void run() {
+                        // 画面に描画する処理
+                        byte buf[] = new byte[bufSize * 2];
+                while(bIsRecording)
+
+                        {
+                            audioRec.read(buf, 0, buf.length);
+
+                            //エンディアン変換
+                            ByteBuffer bf = ByteBuffer.wrap(buf);
+                            bf.order(ByteOrder.LITTLE_ENDIAN);
+                            short[] s = new short[(int) bufSize * 2];
+                            for (int i = bf.position(); i < bf.capacity() / 2; i++) {
+                                s[i] = bf.getShort();
+                            }
+                            //FFTクラスの作成と値の引き渡し
+                            FFT fft = new FFT(FFT_SIZE);
+                            double[] FFTdata = new double[FFT_SIZE];
+                            for (int i = 0; i < FFT_SIZE; i++) {
+                                FFTdata[i] = (double) s[i];
+                            }
+                            fft.rdft(1, FFTdata);
+
+                            // デシベルの計算
+                            double[] dbfs = new double[FFT_SIZE / 2];
+                            double max_db = -120d;
+                            int max_i = 0;
+                            for (int i = 0; i < FFT_SIZE; i += 2) {
+                                dbfs[i / 2] = (int) (20 * Math.log10(Math.sqrt(Math
+                                        .pow(FFTdata[i], 2)
+                                        + Math.pow(FFTdata[i + 1], 2)) / dB_baseline));
+                                if (max_db < dbfs[i / 2]) {
+                                    max_db = dbfs[i / 2];
+                                    max_i = i / 2;
+                                }
+                            }
+
+
+                            Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
+
+                            syuhasu = resol * max_i;
+                            onryou = max_db;
+
+                        }
+                        // 録音停止
+                audioRec.stop();
+                audioRec.release();
+                        //   }
+
+                        //        });
+
+                        // マルチスレッドにしたい処理 ここまで
+                    }
+            }
+        }).start();
+
+    };
 
 }
