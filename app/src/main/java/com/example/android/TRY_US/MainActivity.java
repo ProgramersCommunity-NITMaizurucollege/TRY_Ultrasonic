@@ -18,9 +18,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
-import com.example.android.TRY_US.FFT;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.ByteBuffer;
@@ -28,23 +31,21 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static android.app.Activity.RESULT_OK;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, TextToSpeech.OnInitListener{
+        implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener{
 
     public static final int SPEECH_RECOG_REQUEST = 42;
-  //  Handler handler= new Handler();
-    TextView textView;
+    TextView fftText;
     EditText editText;
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
     int FFT_SIZE = 4096;
     private TextToSpeech tts;
-    double syuhasu;
-    double onryou;
-
-
+    double freq;
+    double vol;
+    boolean fftBool=false;
+    AudioManager mAudioManager;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -61,17 +62,17 @@ public class MainActivity extends AppCompatActivity
         final TextView textView = (TextView)findViewById(R.id.FFTtext);
 
 
-        textView.setText("fft" + "周波数："+ String.valueOf(syuhasu) + " [Hz] 音量：" + String.valueOf(onryou));
+        textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
         speechRecogStuff();
         tts = new TextToSpeech(this, this);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
         Button ttsButton = (Button)findViewById(R.id.button_tts);
         ttsButton.setOnClickListener(this);
-
         Button buttonlisten = (Button)findViewById(R.id.button_write);
         buttonlisten.setOnClickListener(this);
-
+        Switch fftToggle = (Switch) findViewById(R.id.FFTSwitch);
+        fftToggle.setOnCheckedChangeListener((CompoundButton.OnCheckedChangeListener) this);
         //チェックボックス設定
         final CheckBox checkBox = (CheckBox)findViewById(R.id.internal_speaker_checkbox);
         //デフォルト:未チェック
@@ -85,25 +86,18 @@ public class MainActivity extends AppCompatActivity
                     AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
                     am.setMode(AudioManager.MODE_IN_COMMUNICATION);
                     am.setSpeakerphoneOn(true);
-
                 }else {
                     //チェックされていない場合
                 }
-
             }
         });
+
+        editText = (EditText) findViewById(R.id.edit_text);
+        fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
                 SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
-        audioRec.startRecording();
-        bIsRecording = true;
-
-
-
-
-        editText = (EditText) findViewById(R.id.edit_text);
-
     }
 
 
@@ -234,8 +228,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
-
         private android.speech.SpeechRecognizer speechRecognizer;
         private RecognitionListener myListener = new RecognitionListener() {
             public int bufferCounter = 0;
@@ -267,7 +259,6 @@ public class MainActivity extends AppCompatActivity
                 speechRecogStatus.setText("認識終了");
                 bufferStatus.setText("counter = " + bufferCounter);
             }
-
 
             @Override
             public void onError(int error) {
@@ -325,7 +316,7 @@ public class MainActivity extends AppCompatActivity
             }*/
             @Override
             public void onPartialResults(Bundle partialResults) {
-                processResults(partialResults.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION));
+                processResults(partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION));
             }
 
             @Override
@@ -346,9 +337,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy(){
         super.onDestroy();
-       // shutDown();
+        shutDown();
     }
-        //unregisterReceiver(broadcastReceiver);
 
 
     private void speechRecogStuff() {
@@ -357,7 +347,9 @@ public class MainActivity extends AppCompatActivity
         bufferStatus = (TextView) findViewById(R.id.buffer_status);
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizer.setRecognitionListener(myListener);
-        startSpeechRecog();
+        if (fftBool==false) {
+            startSpeechRecog();
+        }
     }
 
     @Override
@@ -381,34 +373,30 @@ public class MainActivity extends AppCompatActivity
                 .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
                 .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"ja-JP");
         //startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
-
         speechRecognizer.startListening(recogIntent);
     }
 
-
-    Handler handler = new Handler();
-    @Override
-    protected void onResume() {
-        super.onResume();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // マルチスレッドにしたい処理 ここから
-                handler.post(new Runnable() {
-
+    public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked){
+        if(isChecked==true){
+            fftBool=true;
+            speechRecognizer.cancel();
+            bIsRecording = true;
+            new Thread(new Runnable() {
                 @Override
-                        public void run(){
-                // final String result = getMessage(); // 何かの処理
+                public void run() {
+                    while(isChecked==true) {
 
+                        // マルチスレッドにしたい処理 ここから
 
-                        //       @Override
-
-                        //   public void run() {
+                        audioRec.startRecording();
                         // 画面に描画する処理
                         byte buf[] = new byte[bufSize * 2];
-                while(bIsRecording)
+                        while (bIsRecording) {
+                            //1秒ディレイ
+                            try{
+                                Thread.sleep(1000);
+                            }catch (InterruptedException e){}
 
-                        {
                             audioRec.read(buf, 0, buf.length);
 
                             //エンディアン変換
@@ -440,25 +428,39 @@ public class MainActivity extends AppCompatActivity
                                 }
                             }
 
-
-                            Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
-
-                            syuhasu = resol * max_i;
-                            onryou = max_db;
-
+                            //Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
+                          /*  runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    fftText.setText("周波数：" + resol * freq + " [Hz] 音量：" + vol + " [dB]");
+                                }
+                            });*/
+                            freq = resol * max_i;
+                            vol = max_db;
                         }
                         // 録音停止
-                audioRec.stop();
-                audioRec.release();
+                        audioRec.stop();
+                        audioRec.release();
                         //   }
-
                         //        });
-
                         // マルチスレッドにしたい処理 ここまで
                     }
-            }
-        }).start();
+                }
+            }).start();
+        } else{
+            // 録音停止
+            audioRec.stop();
+            audioRec.release();
+            fftBool=false;
+            Log.d("fftChecked","isFALSE");
 
-    };
+            speechRecogStuff();
+        }
+    }
 
+    Handler handler = new Handler();
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 }
