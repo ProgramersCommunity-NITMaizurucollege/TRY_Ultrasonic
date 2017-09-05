@@ -462,15 +462,5 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        speechRecognizer.destroy();
-        speechRecogStuff();
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        if(speechRecognizer != null) {
-            speechRecognizer.destroy();
-        }
     }
 }
