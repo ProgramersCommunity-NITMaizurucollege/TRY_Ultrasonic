@@ -467,7 +467,6 @@ public class MainActivity extends ListActivity
         speechRecogStuff();
     }
 
-
     @Override
     protected void onPause(){
         super.onPause();
