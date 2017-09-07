@@ -93,9 +93,14 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+<<<<<<< HEAD
         app:layout_constraintVertical_bias="0.224"
         app:layout_constraintHorizontal_bias="0.055"
         android:layout_marginTop="0dp" />
+=======
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.0" />
+>>>>>>> 2c6989ec2cc1db0b25f55f039deb121a7738e339
 
     <TextView
         android:id="@+id/FFTtext"
@@ -106,14 +111,33 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+<<<<<<< HEAD
         app:layout_constraintHorizontal_bias="0.932"
         app:layout_constraintBottom_toTopOf="@+id/edit_text"
         app:layout_constraintVertical_bias="0.756"
         android:layout_marginTop="30dp" />
+=======
+        app:layout_constraintHorizontal_bias="0.869"
+        app:layout_constraintBottom_toTopOf="@+id/edit_text"
+        app:layout_constraintVertical_bias="0.296" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="0.054"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.393" />
+>>>>>>> 2c6989ec2cc1db0b25f55f039deb121a7738e339
 
     <Switch
-        android:id="@+id/FFTSwitch"
+        android:id="@+id/switch1"
         android:layout_width="wrap_content"
+<<<<<<< HEAD
         android:layout_height="0dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="40dp"
@@ -153,3 +177,14 @@
         app:layout_constraintTop_toBottomOf="@+id/speech_recog_result" />
 
 </android.support.constraint.ConstraintLayout>
+=======
+        android:layout_height="wrap_content"
+        android:text="Switch"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="0.821"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.179" />
+</android.support.constraint.ConstraintLayout>
+>>>>>>> 2c6989ec2cc1db0b25f55f039deb121a7738e339
