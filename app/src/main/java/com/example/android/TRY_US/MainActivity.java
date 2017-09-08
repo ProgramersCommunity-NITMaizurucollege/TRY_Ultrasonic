@@ -67,6 +67,7 @@ public class MainActivity extends ListActivity
     double vol;
     boolean fftBool=false;
     AudioManager mAudioManager;
+    private int audioLevel=0;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -81,7 +82,7 @@ public class MainActivity extends ListActivity
         //ArrayAdapterオブジェクト生成
         adapter=new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         adapter_temp_sentence = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1);
-        listView = (ListView)findViewById(R.id.list_temp_sentence);
+        //listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
 
         //ListAdapterセット
@@ -372,6 +373,7 @@ public class MainActivity extends ListActivity
 
         @Override
         public void onResults(Bundle results) {
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioLevel,0);
             speechRecogStatus.setText("結果");
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
@@ -439,6 +441,9 @@ public class MainActivity extends ListActivity
 
 
     private void startSpeechRecog() {
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
         speechRecogResult.setText(null);
         Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
