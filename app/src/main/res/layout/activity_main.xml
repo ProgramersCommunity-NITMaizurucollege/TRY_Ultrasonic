@@ -6,20 +6,25 @@
     android:windowSoftInputMode="adjustPan"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_weight="1"
-    android:background="@drawable/uikiken"
     tools:context="com.example.android.TRY_US.MainActivity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:srcCompat="@drawable/ui_home_noscreenbar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/speech_recog_status_text"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text="ステータス"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="265dp" />
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:ignore="MissingConstraints" />
 
     <TextView
         android:id="@+id/speech_recog_result"
@@ -41,61 +46,42 @@
         android:text="内蔵スピーカーを使用"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.924"
+        app:layout_constraintHorizontal_bias="0.914"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="120dp"
-        app:layout_constraintVertical_bias="0.293" />
-
-    <Button
-        android:id="@+id/button_write"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="80dp"
-        android:elevation="5dp"
-        android:text="OK"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.446"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintHorizontal_bias="0.114" />
+        app:layout_constraintVertical_bias="0.39" />
 
     <EditText
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         android:id="@+id/edit_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_bias="1.0"
-        android:layout_marginRight="8dp"
+        android:layout_width="275dp"
+        android:layout_height="45dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginStart="0dp"
+        android:hint="返答を入力"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="80dp"
-        app:layout_constraintVertical_bias="0.263"
-        android:layout_marginEnd="8dp" />
+        app:layout_constraintLeft_toLeftOf="parent" />
 
     <Button
         android:id="@+id/button_tts"
-        android:layout_width="94dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:text="Text To Speech"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="-10dp"
+        android:layout_marginEnd="-10dp"
+        android:layout_marginLeft="-10dp"
+        android:layout_marginRight="-10dp"
+        android:layout_marginStart="-10dp"
+        android:text="送信"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.224"
-        app:layout_constraintHorizontal_bias="0.055"
-        android:layout_marginTop="0dp" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <TextView
         android:id="@+id/FFTtext"
@@ -108,48 +94,42 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintHorizontal_bias="0.932"
         app:layout_constraintBottom_toTopOf="@+id/edit_text"
-        app:layout_constraintVertical_bias="0.756"
+        app:layout_constraintVertical_bias="0.0"
         android:layout_marginTop="30dp" />
 
-    <Switch
-        android:id="@+id/FFTSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="40dp"
-        android:text="Switch"
-        app:layout_constraintHorizontal_bias="0.984"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="120dp"
-        app:layout_constraintTop_toBottomOf="@+id/FFTtext" />
-
-    <EditText
-        android:id="@+id/addToList"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="入力して下さい"/>
-
     <Button
-        android:id="@+id/btn"
-        android:layout_width="fill_parent"
-        android:layout_height="48dp"
-        android:text="追加"
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="定型文"
         tools:layout_editor_absoluteX="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="43dp" />
+        tools:layout_editor_absoluteY="23dp" />
 
     <ListView
         android:id="@+id/android:list"
-        android:layout_width="fill_parent"
-        android:layout_height="200dp"
+        android:layout_width="389dp"
+        android:layout_height="213dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.488"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/speech_recog_result" />
+        app:layout_constraintTop_toBottomOf="@+id/speech_recog_result"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ListView
+        android:id="@+id/list_temp_sentence"
+        android:layout_width="360dp"
+        android:layout_height="205dp"
+        android:layout_marginBottom="51dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
 
 </android.support.constraint.ConstraintLayout>
