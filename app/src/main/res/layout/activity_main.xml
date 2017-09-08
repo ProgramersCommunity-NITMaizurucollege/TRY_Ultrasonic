@@ -30,13 +30,14 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.498" />
+        app:layout_constraintHorizontal_bias="0.498"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
 
     <TextView
         android:id="@+id/speech_recog_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
         android:text="結果"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -62,11 +63,6 @@
         android:layout_height="45dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginStart="0dp"
         android:hint="返答を入力"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
@@ -75,13 +71,6 @@
         android:id="@+id/button_tts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="-10dp"
-        android:layout_marginEnd="-10dp"
-        android:layout_marginLeft="-10dp"
-        android:layout_marginRight="-10dp"
-        android:layout_marginStart="-10dp"
         android:text="送信"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -109,13 +98,15 @@
         android:layout_marginRight="8dp"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintHorizontal_bias="0.0" />
+        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
 
     <ListView
         android:id="@+id/android:list"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="217dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"

@@ -49,15 +49,16 @@ import static com.example.android.TRY_US.R.id.text;
 
 
 public class MainActivity extends ListActivity
-        implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener{
+        implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
     InputStream is = null;
     BufferedReader br = null;
     String text = "";
     ListView listView;
+    String res_sub;
     ArrayAdapter<String> adapter;
     ArrayAdapter<String> adapter_temp_sentence;
     public static final int SPEECH_RECOG_REQUEST = 42;
-   // TextView fftText;
+    // TextView fftText;
     EditText editText;
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
@@ -65,9 +66,9 @@ public class MainActivity extends ListActivity
     private TextToSpeech tts;
     double freq;
     double vol;
-    boolean fftBool=false;
+    boolean fftBool = false;
     AudioManager mAudioManager;
-    private int audioLevel=0;
+    private int audioLevel = 0;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -75,20 +76,21 @@ public class MainActivity extends ListActivity
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //ArrayAdapterオブジェクト生成
-        adapter=new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        adapter_temp_sentence = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1);
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapter_temp_sentence = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         //listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
 
         //ListAdapterセット
         setListAdapter(adapter);
         // ここで1秒間スリープし、スプラッシュを表示させたままにする。
-            try {
+        try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
         }
@@ -107,19 +109,19 @@ public class MainActivity extends ListActivity
         findViewById(R.id.button).setOnClickListener(this);
 
         //チェックボックス設定
-        final CheckBox checkBox = (CheckBox)findViewById(R.id.internal_speaker_checkbox);
+        final CheckBox checkBox = (CheckBox) findViewById(R.id.internal_speaker_checkbox);
         //デフォルト:未チェック
         checkBox.setChecked(false);
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean check = checkBox.isChecked();
-                if (check){
+                if (check) {
                     //チェックされている場合
-                    AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                    AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
                     am.setMode(AudioManager.MODE_IN_COMMUNICATION);
                     am.setSpeakerphoneOn(true);
-                }else {
+                } else {
                     //チェックされていない場合
                 }
             }
@@ -133,6 +135,7 @@ public class MainActivity extends ListActivity
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
                 SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
+
     }
 
 
@@ -141,7 +144,8 @@ public class MainActivity extends ListActivity
         if (v != null) {
             switch (v.getId()) {
                 case R.id.button:
-                    tempSentence();
+                    Intent intent = new Intent(getApplication(), SubActivity.class);
+                    startActivityForResult(intent, 1000);
                     // クリック処理
                     break;
 
@@ -149,58 +153,31 @@ public class MainActivity extends ListActivity
                     speechText();
                     // クリック処理
                     break;
-
                 default:
                     break;
             }
         }
     }
 
-    private void tempSentence(){
-        try {
-            try {
-                // assetsフォルダ内の sample.txt をオープンする
-                is = this.getAssets().open("temp_text.txt");
-                br = new BufferedReader(new InputStreamReader(is));
-
-                // １行ずつ読み込み、改行を付加する
-                String str;
-                while ((str = br.readLine()) != null) {
-                    adapter_temp_sentence.add(str);
-                    listView.setAdapter(adapter_temp_sentence);
-                }
-            } finally {
-                if (is != null) is.close();
-                if (br != null) br.close();
-            }
-        } catch (Exception e){
-            // エラー発生時の処理
-        }
-
-// 読み込んだ文字列を EditText に設定し、画面に表示する
-
-    }
 
     private void writeContents(String contents) {
         File temppath = new File(Environment.getExternalStorageDirectory(), "temp");
-        if (temppath.exists() != true){
+        if (temppath.exists() != true) {
             temppath.mkdir();
         }
-        File tempfile = new File(temppath,"test.txt");
+        File tempfile = new File(temppath, "test.txt");
         FileWriter output = null;
-        try{
-            output = new FileWriter(tempfile,true);
+        try {
+            output = new FileWriter(tempfile, true);
             output.write(contents);
             output.write("\n");
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
-            if(output != null){
-                try{
+        } finally {
+            if (output != null) {
+                try {
                     output.close();
-                }catch(IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -218,7 +195,7 @@ public class MainActivity extends ListActivity
     }
 
 
-    private void shutDown(){
+    private void shutDown() {
         if (null != tts) {
             // to release the resource of TextToSpeech
             tts.shutdown();
@@ -227,7 +204,7 @@ public class MainActivity extends ListActivity
 
 
     private void speechText() {
-        EditText editor = (EditText)findViewById(R.id.edit_text);
+        EditText editor = (EditText) findViewById(R.id.edit_text);
         editor.selectAll();
         // EditTextからテキストを取得
         String string = editor.getText().toString();
@@ -244,7 +221,7 @@ public class MainActivity extends ListActivity
             // tts.speak(text, TextToSpeech.QUEUE_FLUSH, null) に
             // KEY_PARAM_UTTERANCE_ID を HasMap で設定
             HashMap<String, String> map = new HashMap<String, String>();
-            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,"messageID");
+            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "messageID");
 
             tts.speak(string, TextToSpeech.QUEUE_FLUSH, map);
             setTtsListener();
@@ -253,9 +230,8 @@ public class MainActivity extends ListActivity
     }
 
 
-
     // 読み上げのスピード
-    private void setSpeechRate(float rate){
+    private void setSpeechRate(float rate) {
         if (null != tts) {
             tts.setSpeechRate(rate);
         }
@@ -263,7 +239,7 @@ public class MainActivity extends ListActivity
 
 
     // 読み上げのピッチ
-    private void setSpeechPitch(float pitch){
+    private void setSpeechPitch(float pitch) {
         if (null != tts) {
             tts.setPitch(pitch);
         }
@@ -271,38 +247,31 @@ public class MainActivity extends ListActivity
 
 
     // 読み上げの始まりと終わりを取得
-    private void setTtsListener(){
+    private void setTtsListener() {
         // android version more than 15th
         // 市場でのシェアが15未満は数パーセントなので除外
-        if (Build.VERSION.SDK_INT >= 15)
-        {
-            int listenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener()
-            {
+        if (Build.VERSION.SDK_INT >= 15) {
+            int listenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                 @Override
-                public void onDone(String utteranceId)
-                {
+                public void onDone(String utteranceId) {
                     //     Log.d(TAG,"progress on Done " + utteranceId);
                 }
 
                 @Override
-                public void onError(String utteranceId)
-                {
+                public void onError(String utteranceId) {
                     //   Log.d(TAG,"progress on Error " + utteranceId);
                 }
 
                 @Override
-                public void onStart(String utteranceId)
-                {
+                public void onStart(String utteranceId) {
                     // Log.d(TAG,"progress on Start " + utteranceId);
                 }
 
             });
-            if (listenerResult != TextToSpeech.SUCCESS)
-            {
+            if (listenerResult != TextToSpeech.SUCCESS) {
                 //   Log.e(TAG, "failed to add utterance progress listener");
             }
-        }
-        else {
+        } else {
             // Log.e(TAG, "Build VERSION is less than API 15");
         }
     }
@@ -343,9 +312,10 @@ public class MainActivity extends ListActivity
         public void onError(int error) {
             String errorString = getErrorString(error);
             speechRecogStatus.setText("エラー = " + errorString);
-            try{
+            try {
                 Thread.sleep(100);
-            }catch (InterruptedException e){}
+            } catch (InterruptedException e) {
+            }
             startSpeechRecog();
         }
 
@@ -373,16 +343,17 @@ public class MainActivity extends ListActivity
 
         @Override
         public void onResults(Bundle results) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioLevel,0);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioLevel, 0);
             speechRecogStatus.setText("結果");
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
-            ListView listView=(ListView) findViewById(list);
+            ListView listView = (ListView) findViewById(list);
             adapter.add(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
             writeContents(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
-            try{
+            try {
                 Thread.sleep(100);
-            }catch (InterruptedException e){}
+            } catch (InterruptedException e) {
+            }
             startSpeechRecog();
         }
 
@@ -409,11 +380,10 @@ public class MainActivity extends ListActivity
 
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
         shutDown();
     }
-
 
 
     private void speechRecogStuff() {
@@ -421,7 +391,7 @@ public class MainActivity extends ListActivity
         speechRecogStatus = (TextView) findViewById(R.id.speech_recog_status_text);
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizer.setRecognitionListener(myListener);
-        if (fftBool==false) {
+        if (fftBool == false) {
             startSpeechRecog();
         }
     }
@@ -432,12 +402,22 @@ public class MainActivity extends ListActivity
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case SPEECH_RECOG_REQUEST:
-                if(resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     processResults(data.getExtras().getStringArrayList(RecognizerIntent.EXTRA_RESULTS));
+                }
+                break;
+
+            case 1000:
+                if(resultCode == RESULT_OK) {
+                    res_sub = data.getStringExtra("RESULT");
+                    EditText editor_result = (EditText) findViewById(R.id.edit_text);
+                    editor_result.setText(res_sub);
                 }
                 break;
         }
     }
+
+
 
 
     private void startSpeechRecog() {
