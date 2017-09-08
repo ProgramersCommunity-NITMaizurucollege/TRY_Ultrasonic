@@ -13,14 +13,15 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     android:layout_weight="1"
     android:theme="@style/AppTheme">
 
-    <activity android:name="com.example.android.TRY_US.MainActivity">
+    <activity android:name="com.example.android.TRY_US.MainActivity"
+        android:label="TRY聴音羽"
+        android:screenOrientation="portrait">
         <intent-filter>
             <action android:name="android.intent.action.MAIN"/>
 
             <category android:name="android.intent.category.LAUNCHER"/>
         </intent-filter>
     </activity>
-
 </application>
 
 </manifest>

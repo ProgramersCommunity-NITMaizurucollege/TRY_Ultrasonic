@@ -2,12 +2,14 @@ package com.example.android.TRY_US;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -24,21 +26,36 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.R.attr.id;
+import static android.R.id.list;
+import static com.example.android.TRY_US.R.id.text;
+
 
 public class MainActivity extends ListActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener{
-
+    InputStream is = null;
+    BufferedReader br = null;
+    String text = "";
+    ListView listView;
     ArrayAdapter<String> adapter;
+    ArrayAdapter<String> adapter_temp_sentence;
     public static final int SPEECH_RECOG_REQUEST = 42;
    // TextView fftText;
     EditText editText;
@@ -52,11 +69,8 @@ public class MainActivity extends ListActivity
     AudioManager mAudioManager;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
-
     // 分解能の計算
     double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
-    int max_i;
-    int max_db;
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
@@ -66,8 +80,10 @@ public class MainActivity extends ListActivity
         setContentView(R.layout.activity_main);
         //ArrayAdapterオブジェクト生成
         adapter=new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapter_temp_sentence = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1);
+        listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
-        Button btn=(Button)findViewById(R.id.btn);
+
         //ListAdapterセット
         setListAdapter(adapter);
         // ここで1秒間スリープし、スプラッシュを表示させたままにする。
@@ -75,10 +91,8 @@ public class MainActivity extends ListActivity
             Thread.sleep(1000);
         } catch (InterruptedException e) {
         }
-        // スプラッシュthemeを通常themeに変更する
-        setTheme(R.style.AppTheme);
-        setContentView(R.layout.activity_main);
 
+        setContentView(R.layout.activity_main);
 
         //final TextView textView = (TextView)findViewById(R.id.FFTtext);
 
@@ -87,12 +101,10 @@ public class MainActivity extends ListActivity
         tts = new TextToSpeech(this, this);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        Button ttsButton = (Button)findViewById(R.id.button_tts);
-        ttsButton.setOnClickListener(this);
-        Button buttonlisten = (Button)findViewById(R.id.button_write);
-        buttonlisten.setOnClickListener(this);
-        Switch fftToggle = (Switch) findViewById(R.id.FFTSwitch);
-        fftToggle.setOnCheckedChangeListener((CompoundButton.OnCheckedChangeListener) this);
+
+        findViewById(R.id.button_tts).setOnClickListener(this);
+        findViewById(R.id.button).setOnClickListener(this);
+
         //チェックボックス設定
         final CheckBox checkBox = (CheckBox)findViewById(R.id.internal_speaker_checkbox);
         //デフォルト:未チェック
@@ -114,13 +126,85 @@ public class MainActivity extends ListActivity
 
 
         editText = (EditText) findViewById(R.id.edit_text);
-    //    fftText = (TextView) findViewById(R.id.FFTtext);
+        editText.setBackgroundColor(Color.WHITE);
+        //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
                 SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
     }
 
+
+    @Override
+    public void onClick(View v) {
+        if (v != null) {
+            switch (v.getId()) {
+                case R.id.button:
+                    tempSentence();
+                    // クリック処理
+                    break;
+
+                case R.id.button_tts:
+                    speechText();
+                    // クリック処理
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void tempSentence(){
+        try {
+            try {
+                // assetsフォルダ内の sample.txt をオープンする
+                is = this.getAssets().open("temp_text.txt");
+                br = new BufferedReader(new InputStreamReader(is));
+
+                // １行ずつ読み込み、改行を付加する
+                String str;
+                while ((str = br.readLine()) != null) {
+                    adapter_temp_sentence.add(str);
+                    listView.setAdapter(adapter_temp_sentence);
+                }
+            } finally {
+                if (is != null) is.close();
+                if (br != null) br.close();
+            }
+        } catch (Exception e){
+            // エラー発生時の処理
+        }
+
+// 読み込んだ文字列を EditText に設定し、画面に表示する
+
+    }
+
+    private void writeContents(String contents) {
+        File temppath = new File(Environment.getExternalStorageDirectory(), "temp");
+        if (temppath.exists() != true){
+            temppath.mkdir();
+        }
+        File tempfile = new File(temppath,"test.txt");
+        FileWriter output = null;
+        try{
+            output = new FileWriter(tempfile,true);
+            output.write(contents);
+            output.write("\n");
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        finally {
+            if(output != null){
+                try{
+                    output.close();
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Override
     public void onInit(int status) {
@@ -133,14 +217,6 @@ public class MainActivity extends ListActivity
     }
 
 
-
-    @Override
-    public void onClick(View v) {
-        speechText();
-    }
-
-
-
     private void shutDown(){
         if (null != tts) {
             // to release the resource of TextToSpeech
@@ -149,15 +225,13 @@ public class MainActivity extends ListActivity
     }
 
 
-
-
-
     private void speechText() {
         EditText editor = (EditText)findViewById(R.id.edit_text);
         editor.selectAll();
         // EditTextからテキストを取得
         String string = editor.getText().toString();
-
+        writeContents(editor.getText().toString());
+        adapter.add(editor.getText().toString());
         if (0 < string.length()) {
             if (tts.isSpeaking()) {
                 tts.stop();
@@ -176,6 +250,7 @@ public class MainActivity extends ListActivity
 
         }
     }
+
 
 
     // 読み上げのスピード
@@ -229,7 +304,6 @@ public class MainActivity extends ListActivity
         else {
             // Log.e(TAG, "Build VERSION is less than API 15");
         }
-
     }
 
 
@@ -301,9 +375,9 @@ public class MainActivity extends ListActivity
             speechRecogStatus.setText("結果");
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
-            ListView listView=(ListView) findViewById(android.R.id.list);
+            ListView listView=(ListView) findViewById(list);
             adapter.add(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
-            listView.setSelection(listView.getCount()-1);
+            writeContents(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
             try{
                 Thread.sleep(100);
             }catch (InterruptedException e){}

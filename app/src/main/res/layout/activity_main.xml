@@ -6,6 +6,7 @@
     android:windowSoftInputMode="adjustPan"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/ui_dangerous"
     tools:context="com.example.android.TRY_US.MainActivity">
 
     <ImageView
