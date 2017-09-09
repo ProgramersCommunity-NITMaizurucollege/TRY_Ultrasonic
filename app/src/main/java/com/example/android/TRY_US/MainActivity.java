@@ -2,6 +2,8 @@ package com.example.android.TRY_US;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -16,6 +18,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -25,10 +28,16 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+
+import com.github.bassaer.chatmessageview.models.Message;
+import com.github.bassaer.chatmessageview.models.User;
+import com.github.bassaer.chatmessageview.utils.ChatBot;
+import com.github.bassaer.chatmessageview.views.ChatView;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +51,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import static android.R.attr.id;
 import static android.R.id.list;
@@ -70,6 +80,8 @@ public class MainActivity extends ListActivity
     boolean fftBool = false;
     AudioManager mAudioManager;
     private int audioLevel = 0;
+    private ChatView mChatView;
+
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -87,7 +99,6 @@ public class MainActivity extends ListActivity
         adapter_temp_sentence = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         //listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
-
         //ListAdapterセット
         setListAdapter(adapter);
         // ここで1秒間スリープし、スプラッシュを表示させたままにする。
@@ -95,9 +106,10 @@ public class MainActivity extends ListActivity
             Thread.sleep(1000);
         } catch (InterruptedException e) {
         }
-
         setContentView(R.layout.activity_main);
 
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setImageResource(R.drawable.sky);
         //final TextView textView = (TextView)findViewById(R.id.FFTtext);
 
         //textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
@@ -106,7 +118,6 @@ public class MainActivity extends ListActivity
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
-        findViewById(R.id.button_tts).setOnClickListener(this);
         findViewById(R.id.button).setOnClickListener(this);
 
         //チェックボックス設定
@@ -127,17 +138,83 @@ public class MainActivity extends ListActivity
                 }
             }
         });
-
-
-        editText = (EditText) findViewById(R.id.edit_text);
-        editText.setBackgroundColor(Color.WHITE);
+        
         //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
                 SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
 
+
+        //User id
+        int myId = 0;
+        //User icon
+        Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.face_2);
+        //User name
+        String myName = "Michael";
+
+        int yourId = 1;
+        Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.face_1);
+        String yourName = "Emily";
+
+        final User me = new User(myId, myName, myIcon);
+        final User you = new User(yourId, yourName, yourIcon);
+
+        mChatView = (ChatView)findViewById(R.id.chat_view);
+
+        //Set UI parameters if you need
+        mChatView.setRightBubbleColor(ContextCompat.getColor(this, R.color.green500));
+        mChatView.setLeftBubbleColor(Color.WHITE);
+        mChatView.setBackgroundColor(ContextCompat.getColor(this, R.color.blueGray500));
+        mChatView.setSendButtonColor(ContextCompat.getColor(this, R.color.cyan900));
+        mChatView.setSendIcon(R.drawable.ic_action_send);
+        mChatView.setRightMessageTextColor(Color.WHITE);
+        mChatView.setLeftMessageTextColor(Color.BLACK);
+        mChatView.setUsernameTextColor(Color.WHITE);
+        mChatView.setSendTimeTextColor(Color.WHITE);
+        mChatView.setDateSeparatorColor(Color.WHITE);
+        mChatView.setInputTextHint("新規メッセージ");
+        mChatView.setMessageMarginTop(5);
+        mChatView.setMessageMarginBottom(5);
+
+        mChatView.setOnClickSendButtonListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //new message
+                Message message = new Message.Builder()
+                        .setUser(me)
+                        .setRightMessage(true)
+                        .setMessageText(mChatView.getInputText())
+                        .hideIcon(true)
+                        .build();
+                //Set to chat view
+                mChatView.send(message);
+                speechText();
+                //Reset edit text
+                mChatView.setInputText("");
+
+                //Receive message
+                final Message receivedMessage = new Message.Builder()
+                        .setUser(you)
+                        .setRightMessage(false)
+                        .setMessageText(ChatBot.talk(me.getName(), message.getMessageText()))
+                        .build();
+
+                // This is a demo bot
+                // Return within 3 seconds
+                int sendDelay = (new Random().nextInt(4) + 1) * 1000;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mChatView.receive(receivedMessage);
+                    }
+                }, sendDelay);
+            }
+
+        });
+
     }
+
 
 
     @Override
@@ -147,11 +224,6 @@ public class MainActivity extends ListActivity
                 case R.id.button:
                     Intent intent = new Intent(getApplication(), SubActivity.class);
                     startActivityForResult(intent, 1000);
-                    // クリック処理
-                    break;
-
-                case R.id.button_tts:
-                    speechText();
                     // クリック処理
                     break;
                 default:
@@ -205,13 +277,11 @@ public class MainActivity extends ListActivity
 
 
     private void speechText() {
-        EditText editor = (EditText) findViewById(R.id.edit_text);
         ListView listView = (ListView) findViewById(list);
-        editor.selectAll();
         // EditTextからテキストを取得
-        String string = editor.getText().toString();
-        adapter.add(editor.getText().toString());
-        writeContents(editor.getText().toString());
+        String string = mChatView.getInputText();
+        adapter.add(mChatView.getInputText());
+        writeContents(mChatView.getInputText());
         if (0 < string.length()) {
             if (tts.isSpeaking()) {
                 tts.stop();
@@ -414,8 +484,7 @@ public class MainActivity extends ListActivity
             case 1000:
                 if(resultCode == RESULT_OK) {
                     res_sub = data.getStringExtra("RESULT");
-                    EditText editor_result = (EditText) findViewById(R.id.edit_text);
-                    editor_result.setText(res_sub);
+                    mChatView.setInputText(res_sub);
                 }
                 break;
         }
