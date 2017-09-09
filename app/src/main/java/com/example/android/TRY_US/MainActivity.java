@@ -45,6 +45,7 @@ import java.util.HashMap;
 
 import static android.R.attr.id;
 import static android.R.id.list;
+import static com.example.android.TRY_US.R.id.list_view;
 import static com.example.android.TRY_US.R.id.text;
 
 
@@ -205,11 +206,12 @@ public class MainActivity extends ListActivity
 
     private void speechText() {
         EditText editor = (EditText) findViewById(R.id.edit_text);
+        ListView listView = (ListView) findViewById(list);
         editor.selectAll();
         // EditTextからテキストを取得
         String string = editor.getText().toString();
-        writeContents(editor.getText().toString());
         adapter.add(editor.getText().toString());
+        writeContents(editor.getText().toString());
         if (0 < string.length()) {
             if (tts.isSpeaking()) {
                 tts.stop();
@@ -227,6 +229,7 @@ public class MainActivity extends ListActivity
             setTtsListener();
 
         }
+        listView.setSelection(listView.getCount()-1);
     }
 
 
@@ -343,13 +346,14 @@ public class MainActivity extends ListActivity
 
         @Override
         public void onResults(Bundle results) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioLevel, 0);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, audioLevel, 0);
             speechRecogStatus.setText("結果");
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
             ListView listView = (ListView) findViewById(list);
             adapter.add(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
             writeContents(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
+                listView.smoothScrollToPosition(listView.getCount()-1);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -422,8 +426,8 @@ public class MainActivity extends ListActivity
 
     private void startSpeechRecog() {
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+        audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
         speechRecogResult.setText(null);
         Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)

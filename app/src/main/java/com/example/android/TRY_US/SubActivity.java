@@ -2,6 +2,10 @@ package com.example.android.TRY_US;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -12,7 +16,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class SubActivity extends Activity {
+public class SubActivity extends AppCompatActivity {
     InputStream is = null;
     BufferedReader br = null;
     String text = "";
@@ -21,10 +25,12 @@ public class SubActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sub);
-
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("定型文");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //ListViewオブジェクトの取得
         final ListView listView=(ListView)findViewById(R.id.list_view);
-
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1);
         //Adapterのセット
@@ -55,19 +61,23 @@ public class SubActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ListView listView = (ListView)parent;
                 msg = (String)listView.getItemAtPosition(position);
-            }
+                        Intent intent_ret = new Intent();
+                        intent_ret.putExtra("RESULT", msg);
+                        setResult(RESULT_OK, intent_ret);
+                        finish();
+                    }
         });
 
         listView.setAdapter(adapter);
-        Button returnButton = (Button) findViewById(R.id.return_button);
-        returnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent_ret = new Intent();
-                intent_ret.putExtra("RESULT", msg);
-                setResult(RESULT_OK, intent_ret);
-                finish();
-            }
-        });
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

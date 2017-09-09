@@ -8,20 +8,20 @@
     tools:context=".MainActivity"
     android:weightSum="1">
 
-    <ListView
-        android:layout_width="match_parent"
-        android:gravity="top"
-        android:layout_height="match_parent"
-        android:id="@+id/list_view"
-        android:layout_weight="0.83" />
-
-    <Button
-        android:id="@+id/return_button"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:gravity="bottom"
-        android:text="return"
-        android:textSize="30sp" />
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.83"
+        android:background="#FFFFFF"
+        android:gravity="top" />
 
 </LinearLayout>
