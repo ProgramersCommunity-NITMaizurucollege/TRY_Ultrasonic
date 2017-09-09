@@ -138,7 +138,7 @@ public class MainActivity extends ListActivity
                 }
             }
         });
-        
+
         //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
