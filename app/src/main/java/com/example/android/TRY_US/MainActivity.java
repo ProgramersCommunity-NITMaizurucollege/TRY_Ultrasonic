@@ -1,5 +1,5 @@
 package com.example.android.TRY_US;
-import android.app.ListActivity;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,19 +20,19 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
@@ -53,13 +53,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import static android.R.attr.color;
 import static android.R.attr.id;
 import static android.R.id.list;
 import static com.example.android.TRY_US.R.id.list_view;
 import static com.example.android.TRY_US.R.id.text;
 
 
-public class MainActivity extends ListActivity
+public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
     InputStream is = null;
     BufferedReader br = null;
@@ -99,8 +100,6 @@ public class MainActivity extends ListActivity
         adapter_temp_sentence = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         //listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
-        //ListAdapterセット
-        setListAdapter(adapter);
         // ここで1秒間スリープし、スプラッシュを表示させたままにする。
         try {
             Thread.sleep(1000);
@@ -108,8 +107,12 @@ public class MainActivity extends ListActivity
         }
         setContentView(R.layout.activity_main);
 
-        ImageView imageView = (ImageView) findViewById(R.id.imageView);
-        imageView.setImageResource(R.drawable.sky);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        toolbar.setBackgroundColor(ContextCompat.getColor(this,R.color.gray200));
+        toolbar.setTitleTextColor(Color.BLACK);
+        toolbar.setTitle("Chat");
+        setSupportActionBar(toolbar);
         //final TextView textView = (TextView)findViewById(R.id.FFTtext);
 
         //textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
@@ -118,7 +121,6 @@ public class MainActivity extends ListActivity
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
-        findViewById(R.id.button).setOnClickListener(this);
 
         //チェックボックス設定
         final CheckBox checkBox = (CheckBox) findViewById(R.id.internal_speaker_checkbox);
@@ -149,32 +151,31 @@ public class MainActivity extends ListActivity
         //User id
         int myId = 0;
         //User icon
-        Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.face_2);
+        Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_mine);
         //User name
-        String myName = "Michael";
-
-        int yourId = 1;
-        Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.face_1);
-        String yourName = "Emily";
+        String myName = "Me";
 
         final User me = new User(myId, myName, myIcon);
-        final User you = new User(yourId, yourName, yourIcon);
 
-        mChatView = (ChatView)findViewById(R.id.chat_view);
+        int yourId = 1;
+        Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
+        String yourName = "You";
+        final User you = new User(yourId, yourName, yourIcon);
+        mChatView = (ChatView) findViewById(R.id.chat_view);
 
         //Set UI parameters if you need
         mChatView.setRightBubbleColor(ContextCompat.getColor(this, R.color.green500));
-        mChatView.setLeftBubbleColor(Color.WHITE);
-        mChatView.setBackgroundColor(ContextCompat.getColor(this, R.color.blueGray500));
-        mChatView.setSendButtonColor(ContextCompat.getColor(this, R.color.cyan900));
+        mChatView.setLeftBubbleColor(ContextCompat.getColor(this,R.color.colorAccent));
+        mChatView.setBackgroundResource(R.drawable.sky);
+        mChatView.setSendButtonColor(ContextCompat.getColor(this, R.color.teal500));
         mChatView.setSendIcon(R.drawable.ic_action_send);
         mChatView.setRightMessageTextColor(Color.WHITE);
-        mChatView.setLeftMessageTextColor(Color.BLACK);
-        mChatView.setUsernameTextColor(Color.WHITE);
-        mChatView.setSendTimeTextColor(Color.WHITE);
-        mChatView.setDateSeparatorColor(Color.WHITE);
+        mChatView.setLeftMessageTextColor(Color.WHITE);
+        mChatView.setUsernameTextColor(Color.BLACK);
+        mChatView.setSendTimeTextColor(Color.BLACK);
+        mChatView.setDateSeparatorColor(Color.BLACK);
         mChatView.setInputTextHint("新規メッセージ");
-        mChatView.setMessageMarginTop(5);
+        mChatView.setMessageMarginTop(10);
         mChatView.setMessageMarginBottom(5);
 
         mChatView.setOnClickSendButtonListener(new View.OnClickListener() {
@@ -185,52 +186,25 @@ public class MainActivity extends ListActivity
                         .setUser(me)
                         .setRightMessage(true)
                         .setMessageText(mChatView.getInputText())
-                        .hideIcon(true)
+                        .hideIcon(false)
                         .build();
                 //Set to chat view
                 mChatView.send(message);
                 speechText();
                 //Reset edit text
                 mChatView.setInputText("");
-
-                //Receive message
-                final Message receivedMessage = new Message.Builder()
-                        .setUser(you)
-                        .setRightMessage(false)
-                        .setMessageText(ChatBot.talk(me.getName(), message.getMessageText()))
-                        .build();
-
-                // This is a demo bot
-                // Return within 3 seconds
-                int sendDelay = (new Random().nextInt(4) + 1) * 1000;
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mChatView.receive(receivedMessage);
-                    }
-                }, sendDelay);
             }
 
         });
-
-    }
-
-
-
-    @Override
-    public void onClick(View v) {
-        if (v != null) {
-            switch (v.getId()) {
-                case R.id.button:
-                    Intent intent = new Intent(getApplication(), SubActivity.class);
-                    startActivityForResult(intent, 1000);
-                    // クリック処理
-                    break;
-                default:
-                    break;
+        mChatView.setOnClickOptionButtonListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplication(), SubActivity.class);
+                startActivityForResult(intent, 1000);
             }
-        }
+        });
     }
+
 
 
     private void writeContents(String contents) {
@@ -277,7 +251,6 @@ public class MainActivity extends ListActivity
 
 
     private void speechText() {
-        ListView listView = (ListView) findViewById(list);
         // EditTextからテキストを取得
         String string = mChatView.getInputText();
         adapter.add(mChatView.getInputText());
@@ -299,7 +272,6 @@ public class MainActivity extends ListActivity
             setTtsListener();
 
         }
-        listView.setSelection(listView.getCount()-1);
     }
 
 
@@ -420,10 +392,19 @@ public class MainActivity extends ListActivity
             speechRecogStatus.setText("結果");
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
-            ListView listView = (ListView) findViewById(list);
-            adapter.add(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
-            writeContents(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0));
-                listView.smoothScrollToPosition(listView.getCount()-1);
+
+
+            //Receive message
+            int yourId = 1;
+            Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
+            String yourName = "You";
+            final User you = new User(yourId, yourName, yourIcon);
+            final Message receivedMessage = new Message.Builder()
+                    .setUser(you)
+                    .setRightMessage(false)
+                    .setMessageText(finalResult)
+                    .build();
+            mChatView.receive(receivedMessage);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -605,5 +586,29 @@ public class MainActivity extends ListActivity
         if(speechRecognizer != null) {
             speechRecognizer.destroy();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_checkbox) {
+            // チェックボックスの状態変更を行う
+            item.setChecked(!item.isChecked());
+            // 反映後の状態を取得する
+            boolean checked = item.isChecked();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 }
