@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity
                 SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
 
-
         //User id
         int myId = 0;
         //User icon
