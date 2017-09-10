@@ -18,6 +18,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -33,6 +34,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import android.os.AsyncTask;
+import okhttp3.*;
 
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
@@ -121,9 +127,9 @@ public class MainActivity extends AppCompatActivity
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
-
+/*
         //チェックボックス設定
-        final CheckBox checkBox = (CheckBox) findViewById(R.id.internal_speaker_checkbox);
+        final CheckBox checkBox = (CheckBox) findViewById(R.id.action_checkbox);
         //デフォルト:未チェック
         checkBox.setChecked(false);
         checkBox.setOnClickListener(new View.OnClickListener() {
@@ -140,7 +146,7 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-
+*/
         //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
@@ -188,8 +194,10 @@ public class MainActivity extends AppCompatActivity
                         .hideIcon(false)
                         .build();
                 //Set to chat view
+                writeContents(mChatView.getInputText());
                 mChatView.send(message);
-                speechText();
+                //speechText();
+                new VoiceText().execute(mChatView.getInputText());
                 //Reset edit text
                 mChatView.setInputText("");
             }
@@ -321,10 +329,9 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private android.speech.SpeechRecognizer speechRecognizer;
+    public android.speech.SpeechRecognizer speechRecognizer;
     private RecognitionListener myListener = new RecognitionListener() {
         public int bufferCounter = 0;
-
 
         @Override
         public void onReadyForSpeech(Bundle params) {
@@ -389,6 +396,7 @@ public class MainActivity extends AppCompatActivity
         public void onResults(Bundle results) {
             mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, audioLevel, 0);
             speechRecogStatus.setText("結果");
+            ArrayList<String> values = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
 
@@ -401,7 +409,7 @@ public class MainActivity extends AppCompatActivity
             final Message receivedMessage = new Message.Builder()
                     .setUser(you)
                     .setRightMessage(false)
-                    .setMessageText(finalResult)
+                    .setMessageText(values.get(0))
                     .build();
             mChatView.receive(receivedMessage);
             try {
@@ -600,8 +608,16 @@ public class MainActivity extends AppCompatActivity
             // チェックボックスの状態変更を行う
             item.setChecked(!item.isChecked());
             // 反映後の状態を取得する
-            boolean checked = item.isChecked();
-            return true;
+            boolean check = item.isChecked();
+            if (check) {
+                //チェックされている場合
+                AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                am.setSpeakerphoneOn(true);
+                return true;
+            } else {
+                //チェックされていない場合
+            }
         }
         return super.onOptionsItemSelected(item);
     }
