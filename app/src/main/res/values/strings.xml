@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TRY 聴音羽</string>
+    <string name="words">定形文編集</string>
+    <string name="help">ヘルプ</string>
 </resources>
