@@ -33,16 +33,9 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
-import android.os.AsyncTask;
-import okhttp3.*;
 
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
-import com.github.bassaer.chatmessageview.utils.ChatBot;
 import com.github.bassaer.chatmessageview.views.ChatView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,20 +45,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
-
-import static android.R.attr.color;
-import static android.R.attr.content;
-import static android.R.attr.id;
-import static android.R.id.list;
-import static com.example.android.TRY_US.R.id.list_view;
-import static com.example.android.TRY_US.R.id.text;
-
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
@@ -262,7 +245,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
+/*
     private void speechText() {
         // EditTextからテキストを取得
         String string = mChatView.getInputText();
@@ -286,7 +269,7 @@ public class MainActivity extends AppCompatActivity
 
         }
     }
-
+*/
 
     // 読み上げのスピード
     private void setSpeechRate(float rate) {
@@ -303,13 +286,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
+    /*
     // 読み上げの始まりと終わりを取得
     private void setTtsListener() {
         // android version more than 15th
         // 市場でのシェアが15未満は数パーセントなので除外
         if (Build.VERSION.SDK_INT >= 15) {
-            int listenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            int selistenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                 @Override
                 public void onDone(String utteranceId) {
                     //     Log.d(TAG,"progress on Done " + utteranceId);
@@ -333,7 +316,7 @@ public class MainActivity extends AppCompatActivity
             // Log.e(TAG, "Build VERSION is less than API 15");
         }
     }
-
+    */
 
     public android.speech.SpeechRecognizer speechRecognizer;
     private RecognitionListener myListener = new RecognitionListener() {
@@ -583,7 +566,6 @@ public class MainActivity extends AppCompatActivity
             speechRecogStuff();
         }
     }
-
 
     Handler handler = new Handler();
     @Override
