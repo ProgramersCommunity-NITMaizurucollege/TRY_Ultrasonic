@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 import static android.R.attr.color;
+import static android.R.attr.content;
 import static android.R.attr.id;
 import static android.R.id.list;
 import static com.example.android.TRY_US.R.id.list_view;
@@ -198,6 +199,11 @@ public class MainActivity extends AppCompatActivity
                 mChatView.send(message);
                 //speechText();
                 new VoiceText().execute(mChatView.getInputText());
+                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                if (audioManager.isMusicActive()) {
+                    // 再生中!!
+                    speechRecognizer.destroy();
+                }
                 //Reset edit text
                 mChatView.setInputText("");
             }
