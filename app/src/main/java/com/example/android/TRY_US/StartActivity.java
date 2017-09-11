@@ -48,7 +48,7 @@ public class StartActivity extends Activity{
                 startActivity(intent);
             }
         });
-        final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.FabMenu);
+        final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.floatingActionButton);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
             public boolean onMenuItemSelected(MenuItem menuItem) {
