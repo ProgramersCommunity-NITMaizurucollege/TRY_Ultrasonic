@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         toolbar.setTitle("Chat");
         setSupportActionBar(toolbar);
         //final TextView textView = (TextView)findViewById(R.id.FFTtext);
-
+        final UtilCommon editable = (UtilCommon)getApplication();
         //textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
         speechRecogStuff();
         tts = new TextToSpeech(this, this);
@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity
         mChatView.setOnClickOptionButtonListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                editable.setGlobal(false);
                 Intent intent = new Intent(getApplication(), SubActivity.class);
                 startActivityForResult(intent, 1000);
             }

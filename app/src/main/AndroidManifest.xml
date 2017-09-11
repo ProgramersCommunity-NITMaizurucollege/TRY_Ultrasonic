@@ -16,7 +16,8 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     android:supportsRtl="true"
     android:windowSoftInputMode="adjustPan"
     android:layout_weight="1"
-    android:theme="@style/SplashTheme">
+    android:theme="@style/SplashTheme"
+    android:name=".UtilCommon">
 
     <activity android:name="com.example.android.TRY_US.StartActivity"
         android:label="TRY 聴音羽"

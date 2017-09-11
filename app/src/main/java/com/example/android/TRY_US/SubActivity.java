@@ -31,7 +31,6 @@ public class SubActivity extends AppCompatActivity {
     String text = "";
     String msg;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
