@@ -2,10 +2,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_library"
-        android:icon="@drawable/icon_words"
+        android:icon="@drawable/icon_add_text"
         android:title="@string/words" />
     <item
         android:id="@+id/action_help"
-        android:icon="@drawable/icon_help"
+        android:icon="@drawable/ic_action_info"
         android:title="@string/help" />
 </menu>
