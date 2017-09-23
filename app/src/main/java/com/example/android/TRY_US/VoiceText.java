@@ -9,7 +9,6 @@ import okhttp3.*;
 import java.io.IOException;
 
 public class VoiceText extends AsyncTask<String,Void,Void> {
-
     OkHttpClient client = new OkHttpClient();
     @Override
     protected Void doInBackground(String... params) {
@@ -33,7 +32,7 @@ public class VoiceText extends AsyncTask<String,Void,Void> {
             // バッファサイズを取得
             int bufSize = AudioTrack.getMinBufferSize(44000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
             // AudioTrackインスタンスを生成
-            AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44000, AudioFormat.CHANNEL_OUT_MONO,
+            AudioTrack audioTrack = new AudioTrack(AudioManager.MODE_IN_COMMUNICATION, 44000, AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT, bufSize, AudioTrack.MODE_STREAM);
             // 再生
             audioTrack.play();

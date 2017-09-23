@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import okhttp3.internal.Util;
+
 public class SubActivity extends AppCompatActivity {
     InputStream is = null;
     BufferedReader br = null;
@@ -38,6 +40,7 @@ public class SubActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("定型文");
         UtilCommon editable = (UtilCommon)getApplication();
+        UtilCommon speakermode = (UtilCommon)getApplication();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //ListViewオブジェクトの取得
@@ -94,6 +97,7 @@ public class SubActivity extends AppCompatActivity {
                             if (actionId == EditorInfo.IME_ACTION_DONE) {
                                 // ... なんかの処理 ...
                                 msg=editText.getText().toString();
+                                //int idx=listView.SelectedItems[0].index;
                                 listView.getItemAtPosition(0);
                                 handled = true;
                                 finish();

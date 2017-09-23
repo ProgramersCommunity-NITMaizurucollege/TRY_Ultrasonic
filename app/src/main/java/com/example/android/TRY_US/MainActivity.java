@@ -50,6 +50,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import okhttp3.internal.Util;
+
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
     InputStream is = null;
@@ -384,7 +386,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onResults(Bundle results) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, audioLevel, 0);
+            //mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, audioLevel, 0);
             speechRecogStatus.setText("結果");
             ArrayList<String> values = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
@@ -472,9 +474,9 @@ public class MainActivity extends AppCompatActivity
 
 
     private void startSpeechRecog() {
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-        mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
+        //mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        //mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
         speechRecogResult.setText(null);
         Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
@@ -593,6 +595,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        final UtilCommon speakermode = (UtilCommon)getApplication();
         if (id == R.id.action_checkbox) {
             // チェックボックスの状態変更を行う
             item.setChecked(!item.isChecked());
@@ -600,11 +603,15 @@ public class MainActivity extends AppCompatActivity
             boolean check = item.isChecked();
             if (check) {
                 //チェックされている場合
+                speakermode.setGlobal(true);
                 AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
                 am.setMode(AudioManager.MODE_IN_COMMUNICATION);
                 am.setSpeakerphoneOn(true);
                 return true;
             } else {
+                AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                am.setSpeakerphoneOn(false);
                 //チェックされていない場合
             }
         }
