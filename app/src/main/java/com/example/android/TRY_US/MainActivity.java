@@ -112,27 +112,6 @@ public class MainActivity extends AppCompatActivity
         tts = new TextToSpeech(this, this);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-
-/*
-        //チェックボックス設定
-        final CheckBox checkBox = (CheckBox) findViewById(R.id.action_checkbox);
-        //デフォルト:未チェック
-        checkBox.setChecked(false);
-        checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean check = checkBox.isChecked();
-                if (check) {
-                    //チェックされている場合
-                    AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                    am.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                    am.setSpeakerphoneOn(true);
-                } else {
-                    //チェックされていない場合
-                }
-            }
-        });
-*/
         //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
         audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
@@ -248,31 +227,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-/*
-    private void speechText() {
-        // EditTextからテキストを取得
-        String string = mChatView.getInputText();
-        adapter.add(mChatView.getInputText());
-        writeContents(mChatView.getInputText());
-        if (0 < string.length()) {
-            if (tts.isSpeaking()) {
-                tts.stop();
-                return;
-            }
-            setSpeechRate(1.0f);
-            setSpeechPitch(1.0f);
-
-            // tts.speak(text, TextToSpeech.QUEUE_FLUSH, null) に
-            // KEY_PARAM_UTTERANCE_ID を HasMap で設定
-            HashMap<String, String> map = new HashMap<String, String>();
-            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "messageID");
-
-            tts.speak(string, TextToSpeech.QUEUE_FLUSH, map);
-            setTtsListener();
-
-        }
-    }
-*/
 
     // 読み上げのスピード
     private void setSpeechRate(float rate) {
@@ -289,37 +243,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    /*
-    // 読み上げの始まりと終わりを取得
-    private void setTtsListener() {
-        // android version more than 15th
-        // 市場でのシェアが15未満は数パーセントなので除外
-        if (Build.VERSION.SDK_INT >= 15) {
-            int selistenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                @Override
-                public void onDone(String utteranceId) {
-                    //     Log.d(TAG,"progress on Done " + utteranceId);
-                }
-
-                @Override
-                public void onError(String utteranceId) {
-                    //   Log.d(TAG,"progress on Error " + utteranceId);
-                }
-
-                @Override
-                public void onStart(String utteranceId) {
-                    // Log.d(TAG,"progress on Start " + utteranceId);
-                }
-
-            });
-            if (listenerResult != TextToSpeech.SUCCESS) {
-                //   Log.e(TAG, "failed to add utterance progress listener");
-            }
-        } else {
-            // Log.e(TAG, "Build VERSION is less than API 15");
-        }
-    }
-    */
 
     public android.speech.SpeechRecognizer speechRecognizer;
     private RecognitionListener myListener = new RecognitionListener() {
@@ -472,11 +395,18 @@ public class MainActivity extends AppCompatActivity
 
 
 
-
     private void startSpeechRecog() {
-        //mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        final UtilCommon talksomeone = (UtilCommon)getApplication();
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         //audioLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
         //mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
+        if (talksomeone.getGlobal()) {
+            mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            mAudioManager.startBluetoothSco();
+        }else{
+            mAudioManager.setMode(AudioManager.MODE_NORMAL);
+            mAudioManager.stopBluetoothSco();
+        }
         speechRecogResult.setText(null);
         Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
@@ -487,6 +417,20 @@ public class MainActivity extends AppCompatActivity
         speechRecognizer.startListening(recogIntent);
     }
 
+    public void onReceive(Context context, Intent intent) {
+        if (AudioManager.ACTION_SCO_AUDIO_STATE_CHANGED.equals(intent.getAction())) {
+            int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, AudioManager.SCO_AUDIO_STATE_ERROR);
+            if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
+                Intent recogIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                        .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
+                        .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                        .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
+                        .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"ja-JP");
+                //startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
+                speechRecognizer.startListening(recogIntent);
+            }
+        }
+    }
 
     public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked){
         if(isChecked==true){
