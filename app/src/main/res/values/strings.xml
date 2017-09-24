@@ -3,4 +3,6 @@
     <string name="words">定形文編集</string>
     <string name="help">ヘルプ</string>
     <string name="inform">特定音検知</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
 </resources>
