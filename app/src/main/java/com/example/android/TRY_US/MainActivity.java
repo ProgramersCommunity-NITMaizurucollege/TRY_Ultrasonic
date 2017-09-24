@@ -19,6 +19,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -37,6 +38,9 @@ import android.widget.TextView;
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
 import com.github.bassaer.chatmessageview.views.ChatView;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,7 +78,8 @@ public class MainActivity extends AppCompatActivity
     AudioManager mAudioManager;
     private int audioLevel = 0;
     private ChatView mChatView;
-
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -98,6 +103,15 @@ public class MainActivity extends AppCompatActivity
         } catch (InterruptedException e) {
         }
         setContentView(R.layout.activity_main);
+
+        // TODO: すごくてきとう
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user==null) {
+            new UserLoginDialogFragment().show(getSupportFragmentManager(),"login");
+        }
+        else {
+            new UserLogoutDialogFragment().show(getSupportFragmentManager(), "logout");
+        }
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
@@ -518,6 +532,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
         speechRecognizer.destroy();
         speechRecogStuff();
     }
