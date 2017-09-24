@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    
     private DatabaseReference getMessageRef() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         return database.getReference(MESSAGE_STORE);
