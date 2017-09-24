@@ -39,8 +39,12 @@ import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
 import com.github.bassaer.chatmessageview.views.ChatView;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,6 +59,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import okhttp3.internal.Util;
+
+import static android.R.id.content;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
@@ -81,7 +87,7 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
-
+    private static final String MESSAGE_STORE = "message";
     // 分解能の計算
     double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
     AudioRecord audioRec = null;
@@ -137,10 +143,9 @@ public class MainActivity extends AppCompatActivity
         //User icon
         Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_mine);
         //User name
-        String myName = "Me";
+        String myName = String.valueOf(FirebaseAuth.getInstance().getCurrentUser());
 
         final User me = new User(myId, myName, myIcon);
-
         int yourId = 1;
         Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
         String yourName = "You";
@@ -175,6 +180,17 @@ public class MainActivity extends AppCompatActivity
                 //Set to chat view
                 writeContents(mChatView.getInputText());
                 mChatView.send(message);
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                getMessageRef().push().setValue(new fMessage(user.getUid(), mChatView.getInputText())).continueWith(new Continuation<Void, Object>() {
+                    @Override
+                    public Object then(@NonNull Task<Void> task) throws Exception {
+                        if (!task.isSuccessful()) {
+                            Log.e("FugaFugaWorks","error", task.getException());
+                            return null;
+                        }
+                        return null;
+                    }
+                });
                 //speechText();
                 new VoiceText().execute(mChatView.getInputText());
                 AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -197,11 +213,14 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-
+    private DatabaseReference getMessageRef() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        return database.getReference(MESSAGE_STORE);
+    }
 
     private void writeContents(String contents) {
         File temppath = new File(Environment.getExternalStorageDirectory(), "temp");
-        if (temppath.exists() != true) {
+        if (!temppath.exists()) {
             temppath.mkdir();
         }
         File tempfile = new File(temppath, "test.txt");
