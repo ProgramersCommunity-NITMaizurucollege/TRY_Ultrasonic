@@ -5,4 +5,8 @@
         android:title="内蔵スピーカー出力"
         android:checkable="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/sign_out_menu"
+        android:title="@string/sign_out"
+        app:showAsAction="never" />
 </menu>

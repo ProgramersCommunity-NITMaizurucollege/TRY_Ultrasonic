@@ -1,7 +1,10 @@
 package com.example.android.TRY_US;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -13,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -20,27 +24,39 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
 import com.github.bassaer.chatmessageview.views.ChatView;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -63,7 +79,7 @@ import okhttp3.internal.Util;
 import static android.R.id.content;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener {
+        implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener, GoogleApiClient.OnConnectionFailedListener {
     InputStream is = null;
     BufferedReader br = null;
     String text = "";
@@ -84,7 +100,36 @@ public class MainActivity extends AppCompatActivity
     AudioManager mAudioManager;
     private int audioLevel = 0;
     private ChatView mChatView;
-    private FirebaseAuth mAuth;
+
+
+    private static final String TAG = "MainActivity";
+    public static final String MESSAGES_CHILD = "messages";
+    private static final int REQUEST_INVITE = 1;
+    private static final int REQUEST_IMAGE = 2;
+    public static final int DEFAULT_MSG_LENGTH_LIMIT = 10;
+    public static final String ANONYMOUS = "me";
+    private static final String MESSAGE_SENT_EVENT = "message_sent";
+    private static final String MESSAGE_URL = "https://try-us-28793.firebaseio.com/message/";
+    private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";
+
+    private String mUsername;
+    private String mYourname;
+    private String mPhotoUrl;
+    private SharedPreferences mSharedPreferences;
+    boolean mSomeoneTalk;
+
+    private Button mSendButton;
+    private RecyclerView mMessageRecyclerView;
+    private LinearLayoutManager mLinearLayoutManager;
+    private ProgressBar mProgressBar;
+    private DatabaseReference mFirebaseDatabaseReference;
+    private FirebaseUser mFirebaseUser;
+    private FirebaseAnalytics mFirebaseAnalytics;
+    private EditText mMessageEditText;
+    private ImageView mAddMessageImageView;
+    private GoogleApiClient mGoogleApiClient;
+    private FirebaseAuth mFirebaseAuth;
+
     private FirebaseAuth.AuthStateListener mAuthListener;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
     private static final String MESSAGE_STORE = "message";
@@ -93,10 +138,10 @@ public class MainActivity extends AppCompatActivity
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final UtilCommon talksomeone = (UtilCommon)getApplication();
         setContentView(R.layout.activity_main);
         //ArrayAdapterオブジェクト生成
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
@@ -104,21 +149,37 @@ public class MainActivity extends AppCompatActivity
         //listView = (ListView)findViewById(R.id.list_temp_sentence);
         //Buttonオブジェクト取得
         // ここで1秒間スリープし、スプラッシュを表示させたままにする。
+        //mFirebaseAuth.signOut();
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
         }
         setContentView(R.layout.activity_main);
+        mUsername = ANONYMOUS;
+        //Googleサインイン
+        if (talksomeone.getGlobal()) {
+            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            // Initialize Firebase Auth
+            mFirebaseAuth = FirebaseAuth.getInstance();
+            mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
-        // TODO: すごくてきとう
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user==null) {
-            new UserLoginDialogFragment().show(getSupportFragmentManager(),"login");
-        }
-        else {
-            new UserLogoutDialogFragment().show(getSupportFragmentManager(), "logout");
-        }
+            if (mFirebaseUser == null) {
+                // Not signed in, launch the Sign In activity
+                startActivity(new Intent(this, SignInActivity.class));
+                finish();
+                return;
+            } else {
+                mUsername = mFirebaseUser.getDisplayName();
+                if (mFirebaseUser.getPhotoUrl() != null) {
+                    mPhotoUrl = mFirebaseUser.getPhotoUrl().toString();
+                }
+            }
 
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this /* FragmentActivity */, this)
+                    .addApi(Auth.GOOGLE_SIGN_IN_API)
+                    .build();
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
         toolbar.setBackgroundColor(ContextCompat.getColor(this,R.color.gray200));
@@ -128,28 +189,30 @@ public class MainActivity extends AppCompatActivity
         //final TextView textView = (TextView)findViewById(R.id.FFTtext);
         final UtilCommon editable = (UtilCommon)getApplication();
         //textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
-        speechRecogStuff();
-        tts = new TextToSpeech(this, this);
-        bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        if (!talksomeone.getGlobal()) {
+            speechRecogStuff();
+        }else {
+            displayDialog();
+        }
+        //tts = new TextToSpeech(this, this);
+        //bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
+        //        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
         //fftText = (TextView) findViewById(R.id.FFTtext);
         // AudioRecordの作成
-        audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
+        //audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
+        //        SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
+        //        AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
 
         //User id
         int myId = 0;
         //User icon
         Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_mine);
         //User name
-        String myName = String.valueOf(FirebaseAuth.getInstance().getCurrentUser());
 
-        final User me = new User(myId, myName, myIcon);
+        final User me = new User(myId, mUsername, myIcon);
         int yourId = 1;
         Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
-        String yourName = "You";
-        final User you = new User(yourId, yourName, yourIcon);
+        final User you = new User(yourId, mYourname, yourIcon);
         mChatView = (ChatView) findViewById(R.id.chat_view);
 
         //Set UI parameters if you need
@@ -180,7 +243,7 @@ public class MainActivity extends AppCompatActivity
                 //Set to chat view
                 writeContents(mChatView.getInputText());
                 mChatView.send(message);
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                /*FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 getMessageRef().push().setValue(new fMessage(user.getUid(), mChatView.getInputText())).continueWith(new Continuation<Void, Object>() {
                     @Override
                     public Object then(@NonNull Task<Void> task) throws Exception {
@@ -190,13 +253,15 @@ public class MainActivity extends AppCompatActivity
                         }
                         return null;
                     }
-                });
+                });*/
                 //speechText();
-                new VoiceText().execute(mChatView.getInputText());
-                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                if (audioManager.isMusicActive()) {
-                    // 再生中!!
-                    speechRecognizer.destroy();
+                if (!talksomeone.getGlobal()) {
+                    new VoiceText().execute(mChatView.getInputText());
+                    AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                    if (audioManager.isMusicActive()) {
+                        // 再生中!!
+                        speechRecognizer.destroy();
+                    }
                 }
                 //Reset edit text
                 mChatView.setInputText("");
@@ -213,7 +278,37 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    
+    private void displayDialog() {
+        // AlertDialog.Builder でダイアログを作成
+        AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+        // ダイアログのタイトルをセット
+        dlg.setTitle("Info");
+        // ダイアログのメッセージをセット
+        dlg.setMessage("文字入力のみで会話しますか?");
+
+        // AlertDialog.Builder#setPositiveButton
+        // OK とか YES とか。左に配置される
+        dlg.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //YES
+            }
+        });
+
+        // AlertDialog.Builder#setNegativeButton
+        // No とか。右に配置される
+        dlg.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //NO
+                speechRecogStuff();
+            }
+        });
+
+        // これを忘れるとダイアログは表示されないよ
+        dlg.show();
+    }
+
     private DatabaseReference getMessageRef() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         return database.getReference(MESSAGE_STORE);
@@ -348,19 +443,35 @@ public class MainActivity extends AppCompatActivity
             ArrayList<String> values = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
             speechRecogResult.setText("" + finalResult);
+            final UtilCommon talksomeone = (UtilCommon)getApplication();
 
-
-            //Receive message
-            int yourId = 1;
-            Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
-            String yourName = "You";
-            final User you = new User(yourId, yourName, yourIcon);
-            final Message receivedMessage = new Message.Builder()
-                    .setUser(you)
-                    .setRightMessage(false)
-                    .setMessageText(values.get(0))
-                    .build();
-            mChatView.receive(receivedMessage);
+            if (talksomeone.getGlobal()) {
+                //User id
+                int myId = 0;
+                //User icon
+                Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_mine);
+                //User name
+                final User me = new User(myId, mUsername, myIcon);
+                final Message receivedMessage = new Message.Builder()
+                        .setUser(me)
+                        .setRightMessage(true)
+                        .hideIcon(false)
+                        .setMessageText(values.get(0))
+                        .build();
+                mChatView.send(receivedMessage);
+            }else {
+                //Receive message
+                int yourId = 1;
+                Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
+                mYourname = "You";
+                final User you = new User(yourId, mYourname, yourIcon);
+                final Message receivedMessage = new Message.Builder()
+                        .setUser(you)
+                        .setRightMessage(false)
+                        .setMessageText(values.get(0))
+                        .build();
+                mChatView.receive(receivedMessage);
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -544,8 +655,10 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        speechRecognizer.destroy();
-        speechRecogStuff();
+        if(speechRecognizer != null) {
+            speechRecognizer.destroy();
+            speechRecogStuff();
+        }
     }
 
     @Override
@@ -585,11 +698,28 @@ public class MainActivity extends AppCompatActivity
                 //チェックされていない場合
             }
         }
+        if(id==R.id.sign_out_menu){
+            final UtilCommon talksomeone = (UtilCommon)getApplication();
+            if (talksomeone.getGlobal()) {
+                mFirebaseAuth.signOut();
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+                mFirebaseUser = null;
+                mUsername = ANONYMOUS;
+                mPhotoUrl = null;
+                startActivity(new Intent(this, SignInActivity.class));
+                finish();
+            }
+        }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onClick(View v) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 }

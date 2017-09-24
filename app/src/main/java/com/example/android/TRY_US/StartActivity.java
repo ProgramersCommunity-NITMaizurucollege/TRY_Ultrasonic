@@ -52,6 +52,15 @@ public class StartActivity extends Activity{
                 startActivity(intent);
             }
         });
+        Button inform = (Button)findViewById(R.id.informOfDangerous);
+        inform.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(getApplication(),informOfDangerousActivity.class);
+                startActivity(intent);
+            }
+        });
+
         final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.floatingActionButton);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
