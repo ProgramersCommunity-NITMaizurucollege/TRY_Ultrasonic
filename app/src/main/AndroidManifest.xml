@@ -11,7 +11,9 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.audio.output"/>
     <uses-feature android:name="android.hardware.microphone"/>
     <uses-feature android:name="android.hardware.wifi"/>
-
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
 <application
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
@@ -41,6 +43,10 @@ xmlns:android="http://schemas.android.com/apk/res/android">
         android:screenOrientation="portrait"
         android:label="TRY 聴音羽">
     </activity>
+    <activity
+        android:name=".informOfDangerousActivity">
+    </activity>
+
 </application>
 
 </manifest>

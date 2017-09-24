@@ -518,22 +518,13 @@ public class MainActivity extends AppCompatActivity
                                 }
                             }
 
-                            //Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
-                          /*  runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    fftText.setText("周波数：" + resol * freq + " [Hz] 音量：" + vol + " [dB]");
-                                }
-                            });*/
+                            Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
                             freq = resol * max_i;
                             vol = max_db;
                         }
                         // 録音停止
                         audioRec.stop();
                         audioRec.release();
-                        //   }
-                        //        });
-                        // マルチスレッドにしたい処理 ここまで
                     }
                 }
             }).start();

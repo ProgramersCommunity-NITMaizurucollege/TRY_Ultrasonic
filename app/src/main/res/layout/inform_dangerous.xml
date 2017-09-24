@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/return_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="特定音検知モード解除" />
+
+    <Button
+        android:id="@+id/start_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="押すと検知開始します" />
+
+    <Button
+        android:id="@+id/add_dangerous_sound"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="検知音追加" />
+</LinearLayout>

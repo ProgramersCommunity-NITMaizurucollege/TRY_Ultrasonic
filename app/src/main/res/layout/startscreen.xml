@@ -11,7 +11,7 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -66,7 +66,25 @@
         app:miniFabDrawableTint="?attr/colorPrimaryDark"
         app:miniFabTitleTextColor="?attr/colorPrimaryDark"
         tools:layout_editor_absoluteX="297dp"
-        tools:layout_editor_absoluteY="557dp" />
+        tools:layout_editor_absoluteY="557dp" >
+
+    </io.github.yavski.fabspeeddial.FabSpeedDial>
+
+    <Button
+        android:id="@+id/informOfDangerous"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="特定音検知"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintVertical_bias="0.953"
+        app:layout_constraintHorizontal_bias="0.169" />
 
 </android.support.constraint.ConstraintLayout>
 
