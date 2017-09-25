@@ -1,8 +1,12 @@
 package com.example.android.TRY_US;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -26,10 +30,10 @@ public class informOfDangerousActivity extends Activity {
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
     int FFT_SIZE = 4096;
+    private String filename = "data1";
     ArrayList<Double> list = new ArrayList<Double>();
     ArrayList<Double> listrealtime = new ArrayList<Double>();
-    ArrayList<Double> listAns = new ArrayList<Double>();
-    // デシベルベースラインの設定
+        // デシベルベースラインの設定
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
 
     // 分解能の計算
@@ -45,7 +49,6 @@ public class informOfDangerousActivity extends Activity {
         setContentView(R.layout.inform_dangerous);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-
 
         Button returnbtn = (Button) findViewById(R.id.return_button);
         returnbtn.setOnClickListener(new View.OnClickListener() {
@@ -63,10 +66,12 @@ public class informOfDangerousActivity extends Activity {
             public void onClick(View v) {
                 if (bIsRecording == true) {
                     //offにする
+                    start = false;
                     bIsRecording = false;
                 }
                 else if (bIsRecording == false) {
                     //onにする
+                    start = false;
                     StartRecording();
                 }
             }
@@ -159,7 +164,6 @@ public class informOfDangerousActivity extends Activity {
 
     private void CompareArray(){
         double total = 0;
-
         for (int i = 0; i < list.size()-1; i++) {
             if(list.get(i)  > 0) {
                 total += (((listrealtime.get(i) - list.get(i)) / list.get(i)) * 100);
@@ -170,7 +174,7 @@ public class informOfDangerousActivity extends Activity {
             //スマホを振動させて特定音検知を通知する
             Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             vibrator.vibrate(1000);
-            for(int i = 0; i < listrealtime.size()-1; i++) {
+            for(int i = 0; i < listrealtime.size(); i++) {
                 listrealtime.remove(i);
             }
             //bIsRecording = false;
