@@ -46,6 +46,10 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
@@ -56,11 +60,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -101,7 +108,6 @@ public class MainActivity extends AppCompatActivity
     private int audioLevel = 0;
     private ChatView mChatView;
 
-
     private static final String TAG = "MainActivity";
     public static final String MESSAGES_CHILD = "messages";
     private static final int REQUEST_INVITE = 1;
@@ -138,6 +144,9 @@ public class MainActivity extends AppCompatActivity
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -193,15 +202,51 @@ public class MainActivity extends AppCompatActivity
             speechRecogStuff();
         }else {
             displayDialog();
+            Firebase.setAndroidContext(this);
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myref = database.getReference("message");
+            myref.addChildEventListener(new com.google.firebase.database.ChildEventListener() {
+                @Override
+                public void onChildAdded(com.google.firebase.database.DataSnapshot dataSnapshot, String s) {
+                    String data = dataSnapshot.child("content").getValue().toString();
+                    adapter.add(data);
+                    //Log.e("message", data);
+                    if (data!=null) {
+                        int yourId = 1;
+                        Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
+                        mYourname = dataSnapshot.child("author").getValue().toString();
+                        final User you = new User(yourId, mYourname, yourIcon);
+                        final Message receivedMessage = new Message.Builder()
+                                .setUser(you)
+                                .setRightMessage(false)
+                                .setMessageText(data)
+                                .build();
+                        mChatView.receive(receivedMessage);
+                    }
+                }
+
+                @Override
+                public void onChildChanged(com.google.firebase.database.DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(com.google.firebase.database.DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(com.google.firebase.database.DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
-        //tts = new TextToSpeech(this, this);
-        //bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
-        //        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        //fftText = (TextView) findViewById(R.id.FFTtext);
-        // AudioRecordの作成
-        //audioRec = new AudioRecord(MediaRecorder.AudioSource.MIC,
-        //        SAMPLING_RATE, AudioFormat.CHANNEL_IN_MONO,
-        //        AudioFormat.ENCODING_PCM_16BIT, bufSize * 2);
+
 
         //User id
         int myId = 0;
@@ -241,6 +286,7 @@ public class MainActivity extends AppCompatActivity
                         .hideIcon(false)
                         .build();
                 //Set to chat view
+                sendMessage(mChatView.getInputText());
                 writeContents(mChatView.getInputText());
                 mChatView.send(message);
                 /*FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -313,7 +359,21 @@ public class MainActivity extends AppCompatActivity
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         return database.getReference(MESSAGE_STORE);
     }
+    private void sendMessage(String content) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+        getMessageRef().push().setValue(new fMessage(user.getDisplayName(), content)).continueWith(new Continuation<Void, Object>() {
+            @Override
+            public Object then(@NonNull Task<Void> task) throws Exception {
+                if (!task.isSuccessful()) {
+                    Log.e("FugaFugaWorks","error", task.getException());
+                    return null;
+                }
+
+                return null;
+            }
+        });
+    }
     private void writeContents(String contents) {
         File temppath = new File(Environment.getExternalStorageDirectory(), "temp");
         if (!temppath.exists()) {
