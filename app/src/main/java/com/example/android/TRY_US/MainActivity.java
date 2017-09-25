@@ -80,6 +80,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import okhttp3.internal.Util;
 
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity
     double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
+    boolean sendText=true;
     int bufSize;
 
 
@@ -209,19 +211,37 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onChildAdded(com.google.firebase.database.DataSnapshot dataSnapshot, String s) {
                     String data = dataSnapshot.child("content").getValue().toString();
-                    adapter.add(data);
                     //Log.e("message", data);
                     if (data!=null) {
-                        int yourId = 1;
+                        Random rnd = new Random();
+                        int yourId = rnd.nextInt(10)+1;
                         Bitmap yourIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_you);
                         mYourname = dataSnapshot.child("author").getValue().toString();
-                        final User you = new User(yourId, mYourname, yourIcon);
-                        final Message receivedMessage = new Message.Builder()
-                                .setUser(you)
-                                .setRightMessage(false)
-                                .setMessageText(data)
-                                .build();
-                        mChatView.receive(receivedMessage);
+                        if (!mUsername.equals(mYourname)) {
+                            adapter.add(data);
+                            final User you = new User(yourId, mYourname, yourIcon);
+                            final Message receivedMessage = new Message.Builder()
+                                    .setUser(you)
+                                    .setRightMessage(false)
+                                    .setMessageText(data)
+                                    .build();
+                            mChatView.receive(receivedMessage);
+                        }else if (mUsername.equals(mYourname)){
+                            //User id
+                            int myId = 0;
+                            //User icon
+                            Bitmap myIcon = BitmapFactory.decodeResource(getResources(), R.drawable.icon_mine);
+                            final User me = new User(myId, mUsername, myIcon);
+                            Message message = new Message.Builder()
+                                    .setUser(me)
+                                    .setRightMessage(true)
+                                    .setMessageText(data)
+                                    .hideIcon(false)
+                                    .build();
+                            //Set to chat view
+                            mChatView.send(message);
+                            sendText=false;
+                        }
                     }
                 }
 
@@ -262,12 +282,12 @@ public class MainActivity extends AppCompatActivity
 
         //Set UI parameters if you need
         mChatView.setRightBubbleColor(ContextCompat.getColor(this, R.color.green500));
-        mChatView.setLeftBubbleColor(ContextCompat.getColor(this,R.color.colorAccent));
+        mChatView.setLeftBubbleColor(ContextCompat.getColor(this,R.color.gray200));
         mChatView.setBackgroundResource(R.drawable.sky);
         mChatView.setSendButtonColor(ContextCompat.getColor(this, R.color.teal500));
         mChatView.setSendIcon(R.drawable.ic_action_send);
         mChatView.setRightMessageTextColor(Color.WHITE);
-        mChatView.setLeftMessageTextColor(Color.WHITE);
+        mChatView.setLeftMessageTextColor(Color.BLACK);
         mChatView.setUsernameTextColor(Color.BLACK);
         mChatView.setSendTimeTextColor(Color.BLACK);
         mChatView.setDateSeparatorColor(Color.BLACK);
@@ -288,7 +308,7 @@ public class MainActivity extends AppCompatActivity
                 //Set to chat view
                 sendMessage(mChatView.getInputText());
                 writeContents(mChatView.getInputText());
-                mChatView.send(message);
+                //mChatView.send(message);
                 /*FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 getMessageRef().push().setValue(new fMessage(user.getUid(), mChatView.getInputText())).continueWith(new Continuation<Void, Object>() {
                     @Override
@@ -518,7 +538,8 @@ public class MainActivity extends AppCompatActivity
                         .hideIcon(false)
                         .setMessageText(values.get(0))
                         .build();
-                mChatView.send(receivedMessage);
+                //mChatView.send(receivedMessage);
+                sendMessage(values.get(0));
             }else {
                 //Receive message
                 int yourId = 1;
