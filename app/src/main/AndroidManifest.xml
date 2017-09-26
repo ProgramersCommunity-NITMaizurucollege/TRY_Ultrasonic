@@ -47,6 +47,8 @@ xmlns:android="http://schemas.android.com/apk/res/android">
         android:name=".informOfDangerousActivity">
     </activity>
     <activity android:name=".SignInActivity" />
+    <activity android:name=".SettingsActivity"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 </application>
 
 </manifest>

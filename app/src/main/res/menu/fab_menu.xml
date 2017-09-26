@@ -5,7 +5,11 @@
         android:icon="@drawable/icon_add_text"
         android:title="@string/words" />
     <item
+        android:id="@+id/action_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/settings"/>
+    <item
         android:id="@+id/action_help"
-        android:icon="@drawable/ic_action_info"
+        android:icon="@android:drawable/ic_menu_help"
         android:title="@string/help" />
 </menu>

@@ -299,16 +299,25 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 //new message
-                Message message = new Message.Builder()
-                        .setUser(me)
-                        .setRightMessage(true)
-                        .setMessageText(mChatView.getInputText())
-                        .hideIcon(false)
-                        .build();
-                //Set to chat view
-                sendMessage(mChatView.getInputText());
-                writeContents(mChatView.getInputText());
-                //mChatView.send(message);
+                if (talksomeone.getGlobal()) {
+                    Message message = new Message.Builder()
+                            .setUser(me)
+                            .setRightMessage(true)
+                            .setMessageText(mChatView.getInputText())
+                            .hideIcon(false)
+                            .build();
+                    //Set to chat view
+                    sendMessage(mChatView.getInputText());
+                }else{
+                    Message message = new Message.Builder()
+                            .setUser(me)
+                            .setRightMessage(true)
+                            .setMessageText(mChatView.getInputText())
+                            .hideIcon(false)
+                            .build();
+                    writeContents(mChatView.getInputText());
+                    mChatView.send(message);
+                }
                 /*FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 getMessageRef().push().setValue(new fMessage(user.getUid(), mChatView.getInputText())).continueWith(new Continuation<Void, Object>() {
                     @Override

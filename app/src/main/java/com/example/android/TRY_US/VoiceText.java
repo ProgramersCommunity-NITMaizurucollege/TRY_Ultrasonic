@@ -16,6 +16,7 @@ public class VoiceText extends AsyncTask<String,Void,Void> {
     @Override
     protected Void doInBackground(String... params) {
         String credential = Credentials.basic("bqt2v2g43kjz1p76", "");
+        
         RequestBody requestBody = new FormBody.Builder()
                 .add("text", String.valueOf(params[0]))
                 .add("speaker","hikari") //パラメーターはここでいじる
