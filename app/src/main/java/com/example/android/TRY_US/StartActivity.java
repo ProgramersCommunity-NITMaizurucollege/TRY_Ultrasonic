@@ -74,6 +74,10 @@ public class StartActivity extends Activity{
                         break;
                     case R.id.action_help:
                         break;
+                    case R.id.action_settings:
+                        Intent intent_Set = new Intent(getApplication(),SettingsActivity.class);
+                        startActivityForResult(intent_Set,1000);
+                        break;
                     default:
                         return super.onMenuItemSelected(menuItem);
                 }
