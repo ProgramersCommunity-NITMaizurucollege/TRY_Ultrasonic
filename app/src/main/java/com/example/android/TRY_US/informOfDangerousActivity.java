@@ -1,8 +1,18 @@
 package com.example.android.TRY_US;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.DoubleBuffer;
 import java.util.*;
 
 import android.app.Activity;
@@ -17,7 +27,11 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.TRY_US.R;
 
@@ -26,6 +40,9 @@ import java.nio.ByteOrder;
 
 public class informOfDangerousActivity extends Activity {
     boolean start = false;
+    boolean dangerousflag = false;
+    private ListView lv;
+
     // サンプリングレート
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
@@ -49,6 +66,27 @@ public class informOfDangerousActivity extends Activity {
         setContentView(R.layout.inform_dangerous);
         bufSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        final ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapter.add("data1");
+        adapter.add("data2");
+        adapter.add("data3");
+        adapter.add("data4");
+        adapter.add("data5");
+
+
+        lv = (ListView) findViewById(R.id.listview);
+        lv.setAdapter(adapter);
+
+        //リスト項目が選択された時のイベントを追加
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                filename = ("data" + position + ".txt");
+                String msg = "data" + (position+1) + "を選択しました。音声登録を行う場合検知音追加ボタンを押してください";
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+                FileInput();
+            }
+        });
 
         Button returnbtn = (Button) findViewById(R.id.return_button);
         returnbtn.setOnClickListener(new View.OnClickListener() {
@@ -60,17 +98,33 @@ public class informOfDangerousActivity extends Activity {
             }
         });
 
+        Button checkbtn = (Button) findViewById(R.id.checkbutton);
+        checkbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FileInput();
+                for(int i = 0; i < list.size(); i++) {
+                    Log.d("CHECK",list.get(i).toString());
+                }
+            }
+        });
+
         Button add_dangerous_sound = (Button) findViewById(R.id.add_dangerous_sound);
         add_dangerous_sound.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (bIsRecording == true) {
                     //offにする
+                    String msg = "録音終了します。";
+                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     start = false;
                     bIsRecording = false;
+                    sampleFileOutput();
                 }
                 else if (bIsRecording == false) {
                     //onにする
+                    String msg = "録音開始します。";
+                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     start = false;
                     StartRecording();
                 }
@@ -84,11 +138,13 @@ public class informOfDangerousActivity extends Activity {
                 if(start == false) {
                     //周囲音録音開始
                     start = true;
+                    FileInput();
                     StartRecording();
                 }
                 else if(start == true){
                     bIsRecording = false;
                     start = false;
+
                 }
             }
         });
@@ -146,10 +202,13 @@ public class informOfDangerousActivity extends Activity {
                         list.add(resol * max_i);
                     }
                     else if(start == true){
+
                         listrealtime.add(resol * max_i);
                         if(list.size() < listrealtime.size()) {
                             CompareArray();
-                            listrealtime.remove(0);
+                            if(dangerousflag == false) {
+                                listrealtime.remove(0);
+                            }
                         }
                     }
                 }
@@ -162,22 +221,83 @@ public class informOfDangerousActivity extends Activity {
         fft.start();
 }
 
-    private void CompareArray(){
+    private boolean CompareArray(){
         double total = 0;
         for (int i = 0; i < list.size()-1; i++) {
             if(list.get(i)  > 0) {
                 total += (((listrealtime.get(i) - list.get(i)) / list.get(i)) * 100);
             }
         }
-
+        dangerousflag = false;
         if(-10 <= total/list.size() && total/list.size() <= 10){
             //スマホを振動させて特定音検知を通知する
             Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             vibrator.vibrate(1000);
-            for(int i = 0; i < listrealtime.size(); i++) {
-                listrealtime.remove(i);
-            }
-            //bIsRecording = false;
+            listrealtime.clear();
+            bIsRecording = false;
+
+            dangerousflag = true;
         }
+        return dangerousflag;
+    }
+    private void FileInput(){//ファイルからの読出し
+
+        InputStream in;
+        String lineBuffer;
+
+        try {
+            in = openFileInput(filename);
+            in = this.getClass().getClassLoader().getResourceAsStream(filename);
+            BufferedReader reader= new BufferedReader(new InputStreamReader(in,"UTF-8"));
+            while( (lineBuffer = reader.readLine()) != null ){
+                list.add(Double.valueOf(lineBuffer));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sampleFileOutput(String contents){//ファイルへの書き込み
+
+        File temppath = new File(Environment.getExternalStorageDirectory(),"dangeroussound");
+        if(temppath .exists() != true){
+            temppath.mkdirs();
+        }
+
+        File tempfile = new File(temppath,filename);
+        FileWriter output = null;
+
+        try{
+            output = new FileWriter(tempfile,true);
+            output.write(contents);
+            output.write("\n");
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally{
+            if(output != null){
+                try{
+                    output.close();
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        /*
+        OutputStream out;
+        try {
+            out = openFileOutput(filename,MODE_PRIVATE);
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(out,"UTF-8"));
+
+            for(int i = 0; i < list.size();i++) {
+                writer.println((list.get(i).byteValue()));
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        */
     }
 }
