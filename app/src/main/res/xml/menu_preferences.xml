@@ -10,5 +10,4 @@
             android:title="男性"
             />
     </PreferenceCategory>
-
 </PreferenceScreen>
