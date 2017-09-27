@@ -21,40 +21,26 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.firebase.client.ChildEventListener;
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.github.bassaer.chatmessageview.models.Message;
 import com.github.bassaer.chatmessageview.models.User;
 import com.github.bassaer.chatmessageview.views.ChatView;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
@@ -64,34 +50,21 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
-import okhttp3.internal.Util;
-
-import static android.R.id.content;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, TextToSpeech.OnInitListener, OnCheckedChangeListener, GoogleApiClient.OnConnectionFailedListener {
-    InputStream is = null;
-    BufferedReader br = null;
-    String text = "";
-    ListView listView;
     String res_sub;
     ArrayAdapter<String> adapter;
     ArrayAdapter<String> adapter_temp_sentence;
     public static final int SPEECH_RECOG_REQUEST = 42;
-    // TextView fftText;
     EditText editText;
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
@@ -102,19 +75,9 @@ public class MainActivity extends AppCompatActivity
     boolean fftBool = false;
     AudioManager mAudioManager;
 
-
-    private int audioLevel = 0;
     private ChatView mChatView;
 
-    private static final String TAG = "MainActivity";
-    public static final String MESSAGES_CHILD = "messages";
-    private static final int REQUEST_INVITE = 1;
-    private static final int REQUEST_IMAGE = 2;
-    public static final int DEFAULT_MSG_LENGTH_LIMIT = 10;
     public static final String ANONYMOUS = "me";
-    private static final String MESSAGE_SENT_EVENT = "message_sent";
-    private static final String MESSAGE_URL = "https://try-us-28793.firebaseio.com/message/";
-    private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";
 
     private String mUsername;
     private String mYourname;
@@ -122,19 +85,10 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences mSharedPreferences;
     boolean mSomeoneTalk;
 
-    private Button mSendButton;
-    private RecyclerView mMessageRecyclerView;
-    private LinearLayoutManager mLinearLayoutManager;
-    private ProgressBar mProgressBar;
-    private DatabaseReference mFirebaseDatabaseReference;
     private FirebaseUser mFirebaseUser;
-    private FirebaseAnalytics mFirebaseAnalytics;
-    private EditText mMessageEditText;
-    private ImageView mAddMessageImageView;
     private GoogleApiClient mGoogleApiClient;
     private FirebaseAuth mFirebaseAuth;
 
-    private FirebaseAuth.AuthStateListener mAuthListener;
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
     private static final String MESSAGE_STORE = "message";
     // 分解能の計算
@@ -194,9 +148,7 @@ public class MainActivity extends AppCompatActivity
         toolbar.setTitleTextColor(Color.BLACK);
         toolbar.setTitle("Chat");
         setSupportActionBar(toolbar);
-        //final TextView textView = (TextView)findViewById(R.id.FFTtext);
         final UtilCommon editable = (UtilCommon)getApplication();
-        //textView.setText("fft" + "周波数："+ String.valueOf(freq) + " [Hz] 音量：" + String.valueOf(vol));
         if (!talksomeone.getGlobal()) {
             speechRecogStuff();
         }else {
@@ -208,7 +160,6 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onChildAdded(com.google.firebase.database.DataSnapshot dataSnapshot, String s) {
                     String data = dataSnapshot.child("content").getValue().toString();
-                    //Log.e("message", data);
                     if (data!=null) {
                         Random rnd = new Random();
                         int yourId = rnd.nextInt(10)+1;
@@ -315,18 +266,6 @@ public class MainActivity extends AppCompatActivity
                     writeContents(mChatView.getInputText());
                     mChatView.send(message);
                 }
-                /*FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                getMessageRef().push().setValue(new fMessage(user.getUid(), mChatView.getInputText())).continueWith(new Continuation<Void, Object>() {
-                    @Override
-                    public Object then(@NonNull Task<Void> task) throws Exception {
-                        if (!task.isSuccessful()) {
-                            Log.e("FugaFugaWorks","error", task.getException());
-                            return null;
-                        }
-                        return null;
-                    }
-                });*/
-                //speechText();
                 if (!talksomeone.getGlobal()) {
                     new VoiceText().execute(mChatView.getInputText());
                     AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -524,7 +463,6 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onResults(Bundle results) {
-            //mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, audioLevel, 0);
             speechRecogStatus.setText("結果");
             ArrayList<String> values = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String finalResult = StringUtils.join(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION), ',');
@@ -544,7 +482,6 @@ public class MainActivity extends AppCompatActivity
                         .hideIcon(false)
                         .setMessageText(values.get(0))
                         .build();
-                //mChatView.send(receivedMessage);
                 sendMessage(values.get(0));
             }else {
                 //Receive message
@@ -643,7 +580,6 @@ public class MainActivity extends AppCompatActivity
                 .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
                 .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"ja-JP");
-        //startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
         speechRecognizer.startListening(recogIntent);
     }
 
@@ -656,7 +592,6 @@ public class MainActivity extends AppCompatActivity
                         .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                         .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"en-US")
                         .putExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES,"ja-JP");
-                //startActivityForResult(recogIntent, SPEECH_RECOG_REQUEST);
                 speechRecognizer.startListening(recogIntent);
             }
         }
