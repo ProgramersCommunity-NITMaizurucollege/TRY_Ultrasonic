@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+
 /**
  * Created by Kanta on 9/11/17.
  */
@@ -21,7 +22,6 @@ public class ListViewAdapter extends ArrayAdapter<ListData> {
         super(context, resource, objects);
         layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
-
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -29,6 +29,7 @@ public class ListViewAdapter extends ArrayAdapter<ListData> {
         if (null == convertView) {
             convertView = layoutInflater.inflate(R.layout.activity_sub, null);
         }
+
 
         TextView daydreamText;
         TextView trafficText;

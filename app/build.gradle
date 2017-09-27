@@ -53,6 +53,7 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:10.2.6'
     compile 'com.firebase:firebase-client-android:2.5.2'
     compile 'com.google.android.gms:play-services-auth:10.2.6'
+    compile 'com.google.code.gson:gson:2.8.2'
 }
 
 

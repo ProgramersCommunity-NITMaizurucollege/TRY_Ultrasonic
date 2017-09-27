@@ -1,29 +1,18 @@
 package com.example.android.TRY_US;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.DoubleBuffer;
+import java.security.PrivateKey;
 import java.util.*;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -34,6 +23,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.android.TRY_US.R;
+import com.google.gson.Gson;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -42,19 +32,20 @@ public class informOfDangerousActivity extends Activity {
     boolean start = false;
     boolean dangerousflag = false;
     private ListView lv;
+    SharedPreferences prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE);
 
     // サンプリングレート
     int SAMPLING_RATE = 44100;
     // FFTのポイント数
     int FFT_SIZE = 4096;
     private String filename = "data1";
-    ArrayList<Double> list = new ArrayList<Double>();
-    ArrayList<Double> listrealtime = new ArrayList<Double>();
-        // デシベルベースラインの設定
-    double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
+    ArrayList<Float> list = new ArrayList<Float>();
+    ArrayList<Float> listrealtime = new ArrayList<Float>();
+    // デシベルベースラインの設定
+    float dB_baseline = (float)(Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2));
 
     // 分解能の計算
-    double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
+    float resol = ((SAMPLING_RATE / (float) FFT_SIZE));
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
     int bufSize;
@@ -74,7 +65,6 @@ public class informOfDangerousActivity extends Activity {
         adapter.add("data4");
         adapter.add("data5");
 
-
         lv = (ListView) findViewById(R.id.listview);
         lv.setAdapter(adapter);
 
@@ -84,7 +74,7 @@ public class informOfDangerousActivity extends Activity {
                 filename = ("data" + position + ".txt");
                 String msg = "data" + (position+1) + "を選択しました。音声登録を行う場合検知音追加ボタンを押してください";
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-                FileInput();
+
             }
         });
 
@@ -102,7 +92,7 @@ public class informOfDangerousActivity extends Activity {
         checkbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FileInput();
+
                 for(int i = 0; i < list.size(); i++) {
                     Log.d("CHECK",list.get(i).toString());
                 }
@@ -119,7 +109,6 @@ public class informOfDangerousActivity extends Activity {
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     start = false;
                     bIsRecording = false;
-                    sampleFileOutput();
                 }
                 else if (bIsRecording == false) {
                     //onにする
@@ -131,6 +120,8 @@ public class informOfDangerousActivity extends Activity {
             }
         });
 
+
+
         Button start_btn = (Button) findViewById(R.id.start_btn);
         start_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,7 +129,7 @@ public class informOfDangerousActivity extends Activity {
                 if(start == false) {
                     //周囲音録音開始
                     start = true;
-                    FileInput();
+
                     StartRecording();
                 }
                 else if(start == true){
@@ -182,9 +173,9 @@ public class informOfDangerousActivity extends Activity {
                     }
                     fft4g.rdft(1, FFTdata);
 
-                     //デシベルの計算
-                    double[] dbfs = new double[FFT_SIZE / 2];
-                    double max_db = -120d;
+                    //デシベルの計算
+                    float[] dbfs = new float[FFT_SIZE / 2];
+                    float max_db = (float)-120d;
                     int max_i = 0;
                     for (int i = 0; i < FFT_SIZE; i += 2) {
                         dbfs[i / 2] = (int) (20 * Math.log10(Math.sqrt(Math
@@ -219,11 +210,11 @@ public class informOfDangerousActivity extends Activity {
         });
         //スレッドのスタート
         fft.start();
-}
+    }
 
     private boolean CompareArray(){
-        double total = 0;
-        for (int i = 0; i < list.size()-1; i++) {
+        float total = 0;
+        for (int i = 0; i < list.size(); i++) {
             if(list.get(i)  > 0) {
                 total += (((listrealtime.get(i) - list.get(i)) / list.get(i)) * 100);
             }
@@ -240,64 +231,23 @@ public class informOfDangerousActivity extends Activity {
         }
         return dangerousflag;
     }
-    private void FileInput(){//ファイルからの読出し
+    private void FileRead(){//ファイルからの読出し
 
-        InputStream in;
-        String lineBuffer;
-
-        try {
-            in = openFileInput(filename);
-            in = this.getClass().getClassLoader().getResourceAsStream(filename);
-            BufferedReader reader= new BufferedReader(new InputStreamReader(in,"UTF-8"));
-            while( (lineBuffer = reader.readLine()) != null ){
-                list.add(Double.valueOf(lineBuffer));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void sampleFileOutput(String contents){//ファイルへの書き込み
-
-        File temppath = new File(Environment.getExternalStorageDirectory(),"dangeroussound");
-        if(temppath .exists() != true){
-            temppath.mkdirs();
-        }
-
-        File tempfile = new File(temppath,filename);
-        FileWriter output = null;
-
-        try{
-            output = new FileWriter(tempfile,true);
-            output.write(contents);
-            output.write("\n");
-        }catch (FileNotFoundException e){
-            e.printStackTrace();
-        }catch (IOException e){
-            e.printStackTrace();
-        }finally{
-            if(output != null){
-                try{
-                    output.close();
-                }catch(IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        /*
-        OutputStream out;
-        try {
-            out = openFileOutput(filename,MODE_PRIVATE);
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(out,"UTF-8"));
-
-            for(int i = 0; i < list.size();i++) {
-                writer.println((list.get(i).byteValue()));
-            }
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
+    public void save(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Gson gson = new Gson();
+        prefs.edit().putString(filename, gson.toJson(this)).apply();
     }
+
+    private void FileWrite(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences();
+        Gson gson = new Gson();
+        prefs.edit().putString(filename,gson.toJson(list)).apply();
+
+
+    }
+
+
 }
