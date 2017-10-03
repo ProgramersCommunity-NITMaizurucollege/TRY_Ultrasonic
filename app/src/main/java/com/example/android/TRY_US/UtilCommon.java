@@ -1,12 +1,9 @@
+// UtilCommon.java
+
 package com.example.android.TRY_US;
 
 import android.app.Application;
-import android.util.Log;
 
-/**
- * グローバル変数を扱うクラス
- * Created by sample on 2016/11/18.
- */
 public class UtilCommon extends Application {
 
     private static final String TAG = "UtilCommon";
@@ -18,7 +15,6 @@ public class UtilCommon extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate");
         mGlobal = false;
     }
 
@@ -28,7 +24,6 @@ public class UtilCommon extends Application {
     @Override
     public void onTerminate() {
         super.onTerminate();
-        Log.d(TAG, "onTerminate");
         mGlobal = false;
     }
 
@@ -37,7 +32,6 @@ public class UtilCommon extends Application {
      * @param global 変更する値
      */
     public void setGlobal(boolean global) {
-        Log.d(TAG, "setGlobal");
         mGlobal = global;
     }
 
@@ -46,7 +40,6 @@ public class UtilCommon extends Application {
      * @return グローバル変数（mGlobal）
      */
     public boolean getGlobal() {
-        Log.d(TAG, "getGlobal");
         return mGlobal;
     }
 

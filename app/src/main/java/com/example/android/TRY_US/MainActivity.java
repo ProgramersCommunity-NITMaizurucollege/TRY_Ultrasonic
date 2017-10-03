@@ -1,62 +1,63 @@
+// MainActivity.java
+
 package com.example.android.TRY_US;
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.media.AudioManager;
-import android.media.AudioRecord;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.preference.PreferenceManager;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.EditText;
-import android.widget.TextView;
+        import android.content.Context;
+        import android.content.DialogInterface;
+        import android.content.Intent;
+        import android.content.SharedPreferences;
+        import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
+        import android.graphics.Color;
+        import android.media.AudioManager;
+        import android.media.AudioRecord;
+        import android.os.Bundle;
+        import android.os.Environment;
+        import android.os.Handler;
+        import android.preference.PreferenceManager;
+        import android.speech.RecognitionListener;
+        import android.speech.RecognizerIntent;
+        import android.speech.SpeechRecognizer;
+        import android.speech.tts.TextToSpeech;
+        import android.support.annotation.NonNull;
+        import android.support.v4.content.ContextCompat;
+        import android.support.v7.app.AlertDialog;
+        import android.support.v7.app.AppCompatActivity;
+        import android.support.v7.widget.Toolbar;
+        import android.view.Menu;
+        import android.view.MenuItem;
+        import android.view.View;
+        import android.widget.ArrayAdapter;
+        import android.widget.CompoundButton;
+        import android.widget.CompoundButton.OnCheckedChangeListener;
+        import android.widget.EditText;
+        import android.widget.TextView;
 
-import com.firebase.client.Firebase;
-import com.github.bassaer.chatmessageview.models.Message;
-import com.github.bassaer.chatmessageview.models.User;
-import com.github.bassaer.chatmessageview.views.ChatView;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+        import com.firebase.client.Firebase;
+        import com.github.bassaer.chatmessageview.models.Message;
+        import com.github.bassaer.chatmessageview.models.User;
+        import com.github.bassaer.chatmessageview.views.ChatView;
+        import com.google.android.gms.auth.api.Auth;
+        import com.google.android.gms.common.ConnectionResult;
+        import com.google.android.gms.common.api.GoogleApiClient;
+        import com.google.android.gms.tasks.Continuation;
+        import com.google.android.gms.tasks.Task;
+        import com.google.firebase.auth.FirebaseAuth;
+        import com.google.firebase.auth.FirebaseUser;
+        import com.google.firebase.database.DatabaseError;
+        import com.google.firebase.database.DatabaseReference;
+        import com.google.firebase.database.FirebaseDatabase;
 
 
-import org.apache.commons.lang3.StringUtils;
+        import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Random;
+        import java.io.File;
+        import java.io.FileWriter;
+        import java.io.IOException;
+        import java.nio.ByteBuffer;
+        import java.nio.ByteOrder;
+        import java.util.ArrayList;
+        import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity
     public static final int SPEECH_RECOG_REQUEST = 42;
     EditText editText;
     int SAMPLING_RATE = 44100;
-    // FFTのポイント数
     int FFT_SIZE = 4096;
     private TextToSpeech tts;
     double freq;
@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity
 
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
     private static final String MESSAGE_STORE = "message";
-    // 分解能の計算
     double resol = ((SAMPLING_RATE / (double) FFT_SIZE));
     AudioRecord audioRec = null;
     boolean bIsRecording = false;
@@ -290,24 +289,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void displayDialog() {
-        // AlertDialog.Builder でダイアログを作成
         AlertDialog.Builder dlg = new AlertDialog.Builder(this);
-        // ダイアログのタイトルをセット
         dlg.setTitle("Info");
-        // ダイアログのメッセージをセット
         dlg.setMessage("文字入力のみで会話しますか?");
-
-        // AlertDialog.Builder#setPositiveButton
-        // OK とか YES とか。左に配置される
         dlg.setPositiveButton("YES", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //YES
             }
         });
-
-        // AlertDialog.Builder#setNegativeButton
-        // No とか。右に配置される
         dlg.setNegativeButton("NO", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -315,8 +305,6 @@ public class MainActivity extends AppCompatActivity
                 speechRecogStuff();
             }
         });
-
-        // これを忘れるとダイアログは表示されないよ
         dlg.show();
     }
 
@@ -331,7 +319,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public Object then(@NonNull Task<Void> task) throws Exception {
                 if (!task.isSuccessful()) {
-                    Log.e("FugaFugaWorks","error", task.getException());
                     return null;
                 }
 
@@ -367,9 +354,7 @@ public class MainActivity extends AppCompatActivity
     public void onInit(int status) {
         // TTS初期化
         if (TextToSpeech.SUCCESS == status) {
-            //  Log.d(, "initialized");
         } else {
-            //   Log.e(TAG, "faile to initialize");
         }
     }
 
@@ -649,7 +634,6 @@ public class MainActivity extends AppCompatActivity
                                 }
                             }
 
-                            Log.d("fft", "周波数：" + resol * max_i + " [Hz] 音量：" + max_db + " [dB]");
                             freq = resol * max_i;
                             vol = max_db;
                         }
@@ -664,8 +648,6 @@ public class MainActivity extends AppCompatActivity
             audioRec.stop();
             audioRec.release();
             fftBool=false;
-            Log.d("fftChecked","isFALSE");
-
             speechRecogStuff();
         }
     }

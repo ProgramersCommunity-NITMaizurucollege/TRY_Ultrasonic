@@ -65,7 +65,6 @@ public class StartActivity extends Activity{
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
             public boolean onMenuItemSelected(MenuItem menuItem) {
-                //TODO: Start some activity
                 switch (menuItem.getItemId()){
                     case R.id.action_library:
                         editable.setGlobal(true);
