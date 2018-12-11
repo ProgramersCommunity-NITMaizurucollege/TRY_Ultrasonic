@@ -1,8 +1,10 @@
+//ExampleUnitTest.java
+
 package com.example.android.TRY_US;
 
-import org.junit.Test;
+        import org.junit.Test;
 
-import static org.junit.Assert.*;
+        import static org.junit.Assert.*;
 
 /**
  * Example local unit test, which will execute on the development machine (host).

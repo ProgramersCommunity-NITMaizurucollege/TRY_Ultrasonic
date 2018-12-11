@@ -1,28 +1,6 @@
+//FFT.java
+
 package com.example.android.TRY_US;
-
-/**
- * Created by fujitayuuya on 2017/07/08.
- */
-
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.pm.ResolveInfo;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.RemoteException;
-import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.Log;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
 
 import static java.lang.Math.atan;
 import static java.lang.Math.cos;
@@ -125,7 +103,6 @@ public class FFT {
         }
     }
 
-	/* -------- child routines -------- */
 
     public void bitrv2(int n, double[] a)
     {
